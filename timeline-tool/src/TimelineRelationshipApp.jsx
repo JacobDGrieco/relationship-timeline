@@ -278,11 +278,26 @@ export default function TimelineRelationshipApp() {
                 <div className="dropdown-list">
                   {filteredRoles.map((option) => (
                     <div
-                      key={option}
                       className="dropdown-item"
-                      onMouseDown={() => addSuggestion('roles', option, availableRoles, setAvailableRoles)}
+                      key={option}
+                      onMouseEnter={(e) => {
+                        const wrapper = e.currentTarget;
+                        const span = wrapper.querySelector("span");
+                        wrapper.classList.add("hover-scroll");
+
+                        const overflowAmount = span.scrollWidth - wrapper.clientWidth;
+                        if (overflowAmount > 0) {
+                          span.style.transform = `translateX(-${overflowAmount}px)`;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        const wrapper = e.currentTarget;
+                        const span = wrapper.querySelector("span");
+                        span.style.transform = "translateX(0px)";
+                        wrapper.classList.remove("hover-scroll");
+                      }}
                     >
-                      {option}
+                      <span>{option}</span>
                     </div>
                   ))}
                 </div>
