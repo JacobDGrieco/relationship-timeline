@@ -391,8 +391,8 @@ body.dark .tag:hover {
 .dropdown-item {
   padding: 0.5rem;
   cursor: pointer;
-  white-space: nowrap;       /* Prevents text from wrapping */
-  overflow-x: auto;          /* Enables horizontal scrolling */
+  white-space: nowrap;
+  overflow-x: auto;
   text-overflow: ellipsis;   /* Adds "..." if text overflows */
   max-width: 100%;
   scrollbar-width: none;     /* Hide scrollbar (Firefox) */
@@ -408,7 +408,6 @@ body.dark .tag:hover {
   background-color: #cbd5e1;
 }
 
-/* Trigger animation on hover */
 .dropdown-item:hover span {
   animation-play-state: running;
 }
@@ -547,7 +546,6 @@ body.dark .dropdown-item:hover {
   background-color: #d1d5db;
 }
 
-/* Style for Add Person button to match header buttons */
 .header-center button {
   padding: 0.5rem 1rem;
   background-color: #6366f1;
