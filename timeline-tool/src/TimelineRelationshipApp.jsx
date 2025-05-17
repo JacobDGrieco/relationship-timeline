@@ -163,22 +163,24 @@ export default function TimelineRelationshipApp() {
         <h3 className="text-lg font-bold mb-2">Node {selectedNode} Details</h3>
 
         {/* 1. Image Upload */}
-        <div className="mb-4">
-          <label className="block font-semibold mb-2">Image</label>
-          <label className="file-upload-label">
-            Upload Image
-            <input type="file" className="file-upload-input" accept="image/*" onChange={handleImageUpload} />
-          </label>
-          {data.image && <div className="file-name">Image uploaded</div>}
+        <div className="details-row">
+          <label className="details-label">Image</label>
+          <div className="details-input">
+            <label className="file-upload-label">
+              Upload Image
+              <input type="file" className="file-upload-input" accept="image/*" onChange={handleImageUpload} />
+            </label>
+            {data.image && <div className="file-name">Image uploaded</div>}
+          </div>
         </div>
 
         {/* 2. Primary Series */}
-        <div className="mb-4">
-          <label className="block font-semibold mb-2">Primary Series</label>
+        <div className="details-row">
+          <label className="details-label">Primary Series</label>
           <select
+            className="details-input"
             value={data.primarySeries || ''}
             onChange={(e) => handleNodeFieldChange('primarySeries', e.target.value)}
-            className="w-full border rounded p-1"
           >
             <option value="">Select a series</option>
             {SERIES_OPTIONS.map((opt) => (
@@ -188,55 +190,52 @@ export default function TimelineRelationshipApp() {
         </div>
 
         {/* Secondary Series */}
-        <div className="mb-4 relative">
-          <label className="block font-semibold mb-2">Secondary Series</label>
-          <input
-            ref={secondaryInputRef}
-            type="text"
-            placeholder="Type and press Enter"
-            onKeyDown={(e) => handleRoleKeyDown(e, 'secondarySeries', setAvailableSecondarySeries)}
-            onChange={(e) => {
-              setDropdownFilter(e.target.value);
-              setShowDropdown((prev) => ({ ...prev, secondarySeries: true }));
-            }}
-            onFocus={() => setShowDropdown((prev) => ({ ...prev, secondarySeries: true }))}
-            onBlur={() => setTimeout(() => setShowDropdown((prev) => ({ ...prev, secondarySeries: false })), 150)}
-            className="w-full border rounded p-1"
-          />
-          {showDropdown.secondarySeries && filteredSecondarySeries.length > 0 && (
-            <div className="dropdown-list">
-              {filteredSecondarySeries.map((option) => (
-                <div
-                  key={option}
-                  className="dropdown-item"
-                  onMouseDown={() => addSuggestion('secondarySeries', option, availableSecondarySeries, setAvailableSecondarySeries)}
-                >
-                  {option}
-                </div>
+        <div className="details-row">
+          <label className="details-label">Secondary Series</label>
+          <div className="details-input relative">
+            <input
+              ref={secondaryInputRef}
+              type="text"
+              placeholder="Type and press Enter"
+              onKeyDown={(e) => handleRoleKeyDown(e, 'secondarySeries', setAvailableSecondarySeries)}
+              onChange={(e) => {
+                setDropdownFilter(e.target.value);
+                setShowDropdown(prev => ({ ...prev, secondarySeries: true }));
+              }}
+              onFocus={() => setShowDropdown(prev => ({ ...prev, secondarySeries: true }))}
+              onBlur={() => setTimeout(() => setShowDropdown(prev => ({ ...prev, secondarySeries: false })), 150)}
+              className="w-full border rounded p-1"
+            />
+            {showDropdown.secondarySeries && filteredSecondarySeries.length > 0 && (
+              <div className="dropdown-list">
+                {filteredSecondarySeries.map((option) => (
+                  <div
+                    key={option}
+                    className="dropdown-item"
+                    onMouseDown={() => addSuggestion('secondarySeries', option, availableSecondarySeries, setAvailableSecondarySeries)}
+                  >
+                    {option}
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="tag-container">
+              {currentSecondaries.map((val) => (
+                <span className="tag cursor-pointer" key={val} onClick={() =>
+                  handleRemoveValue('secondarySeries', val, availableSecondarySeries, setAvailableSecondarySeries)
+                }>{val}</span>
               ))}
             </div>
-          )}
-          <div className="tag-container">
-            {currentSecondaries.map((val) => (
-              <span
-                className="tag cursor-pointer"
-                key={val}
-                onClick={() => handleRemoveValue('secondarySeries', val, availableSecondarySeries, setAvailableSecondarySeries)}
-              >
-                {val}
-              </span>
-            ))}
           </div>
         </div>
 
-
         {/* 4. Status */}
-        <div className="mb-4">
-          <label className="block font-semibold mb-2">Status</label>
+        <div className="details-row">
+          <label className="details-label">Status</label>
           <select
+            className="details-input"
             value={data.status || 'Alive'}
             onChange={(e) => handleNodeFieldChange('status', e.target.value)}
-            className="w-full border rounded p-1"
           >
             {STATUS_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>{opt}</option>
@@ -245,44 +244,42 @@ export default function TimelineRelationshipApp() {
         </div>
 
         {/* Current Role(s) */}
-        <div className="mb-4 relative">
-          <label className="block font-semibold mb-2">Current Role(s)</label>
-          <input
-            ref={roleInputRef}
-            type="text"
-            placeholder="Type and press Enter"
-            onKeyDown={(e) => handleRoleKeyDown(e, 'roles', setAvailableRoles)}
-            onChange={(e) => {
-              setRoleDropdownFilter(e.target.value);
-              setShowDropdown((prev) => ({ ...prev, roles: true }));
-            }}
-            onFocus={() => setShowDropdown((prev) => ({ ...prev, roles: true }))}
-            onBlur={() => setTimeout(() => setShowDropdown((prev) => ({ ...prev, roles: false })), 150)}
-            className="w-full border rounded p-1"
-          />
-          {showDropdown.roles && filteredRoles.length > 0 && (
-            <div className="dropdown-list">
-              {filteredRoles.map((option) => (
-                <div
-                  key={option}
-                  className="dropdown-item"
-                  onMouseDown={() => addSuggestion('roles', option, availableRoles, setAvailableRoles)}
-                >
-                  {option}
-                </div>
+        <div className="details-row">
+          <label className="details-label">Current Role(s)</label>
+          <div className="details-input relative">
+            <input
+              ref={roleInputRef}
+              type="text"
+              placeholder="Type and press Enter"
+              onKeyDown={(e) => handleRoleKeyDown(e, 'roles', setAvailableRoles)}
+              onChange={(e) => {
+                setRoleDropdownFilter(e.target.value);
+                setShowDropdown(prev => ({ ...prev, roles: true }));
+              }}
+              onFocus={() => setShowDropdown(prev => ({ ...prev, roles: true }))}
+              onBlur={() => setTimeout(() => setShowDropdown(prev => ({ ...prev, roles: false })), 150)}
+              className="w-full border rounded p-1"
+            />
+            {showDropdown.roles && filteredRoles.length > 0 && (
+              <div className="dropdown-list">
+                {filteredRoles.map((option) => (
+                  <div
+                    key={option}
+                    className="dropdown-item"
+                    onMouseDown={() => addSuggestion('roles', option, availableRoles, setAvailableRoles)}
+                  >
+                    {option}
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="tag-container">
+              {currentRoles.map((val) => (
+                <span className="tag cursor-pointer" key={val} onClick={() =>
+                  handleRemoveValue('roles', val, availableRoles, setAvailableRoles)
+                }>{val}</span>
               ))}
             </div>
-          )}
-          <div className="tag-container">
-            {currentRoles.map((val) => (
-              <span
-                className="tag cursor-pointer"
-                key={val}
-                onClick={() => handleRemoveValue('roles', val, availableRoles, setAvailableRoles)}
-              >
-                {val}
-              </span>
-            ))}
           </div>
         </div>
       </div>
