@@ -57,18 +57,22 @@ export default function TimelineRelationshipApp() {
     const handleRoleKeyDown = (e, field, availableSetter) => {
       if (e.key === 'Enter' && e.target.value.trim()) {
         const newValue = e.target.value.trim();
-        const updated = [...new Set([...(data[field] || []), newValue])];
+        const updated = [...new Set([...(nodeDetails[selectedNode]?.[field] || []), newValue])];
         handleNodeFieldChange(field, updated);
 
-        if (field === 'roles' && !availableRoles.includes(newValue)) {
-          availableSetter(prev => [...new Set([...prev, newValue])]);
+        if (field === 'roles') {
+          if (!availableRoles.includes(newValue)) {
+            const updatedRoles = [...availableRoles, newValue].sort((a, b) => a.localeCompare(b));
+            availableSetter(updatedRoles);
+          }
         }
 
-        if (field === 'secondarySeries' && !availableSecondarySeries.includes(newValue)) {
-          availableSetter(prev => [...new Set([...prev, newValue])]);
+        if (field === 'secondarySeries') {
+          if (!availableSecondarySeries.includes(newValue)) {
+            availableSetter([...availableSecondarySeries, newValue]); // No sort needed here unless you want it
+          }
         }
 
-        // Hide dropdown and blur input field
         if (field === 'roles') {
           setRoleDropdownFilter('');
           setShowDropdown(prev => ({ ...prev, roles: false }));
@@ -138,7 +142,12 @@ export default function TimelineRelationshipApp() {
       handleNodeFieldChange(field, [...current, value]);
 
       if (!available.includes(value)) {
-        setter([...available, value]);
+        const updated = [...available, value];
+        if (field === 'roles') {
+          updated.sort((a, b) => a.localeCompare(b));
+          console.log('Sorted Roles:', updated);
+        }
+        setter(updated);
       }
 
       if (field === "secondarySeries") {
@@ -302,6 +311,7 @@ export default function TimelineRelationshipApp() {
                   ))}
                 </div>
               )}
+
               <div className="tag-container">
                 {currentRoles.map((val) => (
                   <span className="tag cursor-pointer" key={val} onClick={() =>
