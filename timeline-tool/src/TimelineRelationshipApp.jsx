@@ -25,6 +25,9 @@ export default function TimelineRelationshipApp() {
   const [dropdownFilter, setDropdownFilter] = useState("");
   const [roleDropdownFilter, setRoleDropdownFilter] = useState("");
   const [showDropdown, setShowDropdown] = useState({ roles: false, secondarySeries: false });
+  const [isDetailsVisible, setIsDetailsVisible] = useState(false);
+  const [justClosedRecently, setJustClosedRecently] = useState(false);
+
   const containerRef = useRef();
   const networkRef = useRef();
   const roleInputRef = useRef(null);
@@ -158,127 +161,139 @@ export default function TimelineRelationshipApp() {
       o.toLowerCase().includes(dropdownFilter.toLowerCase())
     );
 
+    if (!isDetailsVisible && !justClosedRecently) return null;
+
     return (
-      <div className="details-panel">
-        <h3 className="text-lg font-bold mb-2">Node {selectedNode} Details</h3>
+      <div className={`slide-pane ${isDetailsVisible ? 'visible' : 'hidden'}`}>
+        <button
+          className="close-details-button"
+          onClick={() => {
+            setIsDetailsVisible(false);
+            setTimeout(() => setJustClosedRecently(false), 300); // Matches CSS animation
+          }}
+        >×</button>
 
-        {/* 1. Image Upload */}
-        <div className="details-row">
-          <label className="details-label">Image</label>
-          <div className="details-input">
-            <label className="file-upload-label">
-              Upload Image
-              <input type="file" className="file-upload-input" accept="image/*" onChange={handleImageUpload} />
-            </label>
-            {data.image && <div className="file-name">Image uploaded</div>}
-          </div>
-        </div>
+        <div className="details-content">
+          <h3 className="text-lg font-bold mb-2">Node {selectedNode} Details</h3>
 
-        {/* 2. Primary Series */}
-        <div className="details-row">
-          <label className="details-label">Primary Series</label>
-          <select
-            className="details-input"
-            value={data.primarySeries || ''}
-            onChange={(e) => handleNodeFieldChange('primarySeries', e.target.value)}
-          >
-            <option value="">Select a series</option>
-            {SERIES_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Secondary Series */}
-        <div className="details-row">
-          <label className="details-label">Secondary Series</label>
-          <div className="details-input relative">
-            <input
-              ref={secondaryInputRef}
-              type="text"
-              placeholder="Type and press Enter"
-              onKeyDown={(e) => handleRoleKeyDown(e, 'secondarySeries', setAvailableSecondarySeries)}
-              onChange={(e) => {
-                setDropdownFilter(e.target.value);
-                setShowDropdown(prev => ({ ...prev, secondarySeries: true }));
-              }}
-              onFocus={() => setShowDropdown(prev => ({ ...prev, secondarySeries: true }))}
-              onBlur={() => setTimeout(() => setShowDropdown(prev => ({ ...prev, secondarySeries: false })), 150)}
-              className="w-full border rounded p-1"
-            />
-            {showDropdown.secondarySeries && filteredSecondarySeries.length > 0 && (
-              <div className="dropdown-list">
-                {filteredSecondarySeries.map((option) => (
-                  <div
-                    key={option}
-                    className="dropdown-item"
-                    onMouseDown={() => addSuggestion('secondarySeries', option, availableSecondarySeries, setAvailableSecondarySeries)}
-                  >
-                    {option}
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="tag-container">
-              {currentSecondaries.map((val) => (
-                <span className="tag cursor-pointer" key={val} onClick={() =>
-                  handleRemoveValue('secondarySeries', val, availableSecondarySeries, setAvailableSecondarySeries)
-                }>{val}</span>
-              ))}
+          {/* 1. Image Upload */}
+          <div className="details-row">
+            <label className="details-label">Image</label>
+            <div className="details-input">
+              <label className="file-upload-label">
+                Upload Image
+                <input type="file" className="file-upload-input" accept="image/*" onChange={handleImageUpload} />
+              </label>
+              {data.image && <div className="file-name">Image uploaded</div>}
             </div>
           </div>
-        </div>
 
-        {/* 4. Status */}
-        <div className="details-row">
-          <label className="details-label">Status</label>
-          <select
-            className="details-input"
-            value={data.status || 'Alive'}
-            onChange={(e) => handleNodeFieldChange('status', e.target.value)}
-          >
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
+          {/* 2. Primary Series */}
+          <div className="details-row">
+            <label className="details-label">Primary Series</label>
+            <select
+              className="details-input"
+              value={data.primarySeries || ''}
+              onChange={(e) => handleNodeFieldChange('primarySeries', e.target.value)}
+            >
+              <option value="">Select a series</option>
+              {SERIES_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
 
-        {/* Current Role(s) */}
-        <div className="details-row">
-          <label className="details-label">Current Role(s)</label>
-          <div className="details-input relative">
-            <input
-              ref={roleInputRef}
-              type="text"
-              placeholder="Type and press Enter"
-              onKeyDown={(e) => handleRoleKeyDown(e, 'roles', setAvailableRoles)}
-              onChange={(e) => {
-                setRoleDropdownFilter(e.target.value);
-                setShowDropdown(prev => ({ ...prev, roles: true }));
-              }}
-              onFocus={() => setShowDropdown(prev => ({ ...prev, roles: true }))}
-              onBlur={() => setTimeout(() => setShowDropdown(prev => ({ ...prev, roles: false })), 150)}
-              className="w-full border rounded p-1"
-            />
-            {showDropdown.roles && filteredRoles.length > 0 && (
-              <div className="dropdown-list">
-                {filteredRoles.map((option) => (
-                  <div
-                    key={option}
-                    className="dropdown-item"
-                    onMouseDown={() => addSuggestion('roles', option, availableRoles, setAvailableRoles)}
-                  >
-                    {option}
-                  </div>
+          {/* Secondary Series */}
+          <div className="details-row">
+            <label className="details-label">Secondary Series</label>
+            <div className="details-input relative">
+              <input
+                ref={secondaryInputRef}
+                type="text"
+                placeholder="Type and press Enter"
+                onKeyDown={(e) => handleRoleKeyDown(e, 'secondarySeries', setAvailableSecondarySeries)}
+                onChange={(e) => {
+                  setDropdownFilter(e.target.value);
+                  setShowDropdown(prev => ({ ...prev, secondarySeries: true }));
+                }}
+                onFocus={() => setShowDropdown(prev => ({ ...prev, secondarySeries: true }))}
+                onBlur={() => setTimeout(() => setShowDropdown(prev => ({ ...prev, secondarySeries: false })), 150)}
+                className="w-full border rounded p-1"
+              />
+              {showDropdown.secondarySeries && filteredSecondarySeries.length > 0 && (
+                <div className="dropdown-list">
+                  {filteredSecondarySeries.map((option) => (
+                    <div
+                      key={option}
+                      className="dropdown-item"
+                      onMouseDown={() => addSuggestion('secondarySeries', option, availableSecondarySeries, setAvailableSecondarySeries)}
+                    >
+                      {option}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="tag-container">
+                {currentSecondaries.map((val) => (
+                  <span className="tag cursor-pointer" key={val} onClick={() =>
+                    handleRemoveValue('secondarySeries', val, availableSecondarySeries, setAvailableSecondarySeries)
+                  }>{val}</span>
                 ))}
               </div>
-            )}
-            <div className="tag-container">
-              {currentRoles.map((val) => (
-                <span className="tag cursor-pointer" key={val} onClick={() =>
-                  handleRemoveValue('roles', val, availableRoles, setAvailableRoles)
-                }>{val}</span>
+            </div>
+          </div>
+
+          {/* 4. Status */}
+          <div className="details-row">
+            <label className="details-label">Status</label>
+            <select
+              className="details-input"
+              value={data.status || 'Alive'}
+              onChange={(e) => handleNodeFieldChange('status', e.target.value)}
+            >
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
               ))}
+            </select>
+          </div>
+
+          {/* Current Role(s) */}
+          <div className="details-row">
+            <label className="details-label">Current Role(s)</label>
+            <div className="details-input relative">
+              <input
+                ref={roleInputRef}
+                type="text"
+                placeholder="Type and press Enter"
+                onKeyDown={(e) => handleRoleKeyDown(e, 'roles', setAvailableRoles)}
+                onChange={(e) => {
+                  setRoleDropdownFilter(e.target.value);
+                  setShowDropdown(prev => ({ ...prev, roles: true }));
+                }}
+                onFocus={() => setShowDropdown(prev => ({ ...prev, roles: true }))}
+                onBlur={() => setTimeout(() => setShowDropdown(prev => ({ ...prev, roles: false })), 150)}
+                className="w-full border rounded p-1"
+              />
+              {showDropdown.roles && filteredRoles.length > 0 && (
+                <div className="dropdown-list">
+                  {filteredRoles.map((option) => (
+                    <div
+                      key={option}
+                      className="dropdown-item"
+                      onMouseDown={() => addSuggestion('roles', option, availableRoles, setAvailableRoles)}
+                    >
+                      {option}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="tag-container">
+                {currentRoles.map((val) => (
+                  <span className="tag cursor-pointer" key={val} onClick={() =>
+                    handleRemoveValue('roles', val, availableRoles, setAvailableRoles)
+                  }>{val}</span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -322,11 +337,11 @@ export default function TimelineRelationshipApp() {
     if (containerRef.current) {
       networkRef.current = new Network(containerRef.current, data, options);
       networkRef.current.on("click", function (params) {
-        if (params.nodes.length > 0) {
-          const nodeId = params.nodes[0];
+        if (params.nodes.length === 1) {
+          const nodeId = params.nodes[0]; // ✅ Get the actual clicked node ID
           setSelectedNode(nodeId);
-        } else {
-          setSelectedNode(null);
+          setIsDetailsVisible(true);
+          setJustClosedRecently(true);
         }
       });
     }
@@ -472,8 +487,6 @@ export default function TimelineRelationshipApp() {
         <div className="top-section">
           <div className="network-area">
             <div id="network-container" ref={containerRef}></div>
-          </div>
-          <div className="details-panel">
             {renderNodeDetailForm()}
           </div>
         </div>
