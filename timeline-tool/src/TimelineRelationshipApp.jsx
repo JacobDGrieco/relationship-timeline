@@ -84,12 +84,24 @@ export default function TimelineRelationshipApp() {
     };
 
     const handleRemoveValue = (field, value, available, availableSetter) => {
-      const updated = (data[field] || []).filter(item => item !== value);
-      handleNodeFieldChange(field, updated);
+      const current = nodeDetails[selectedNode]?.[field] || [];
+      const updated = current.filter(item => item !== value);
+      const updatedNodeDetails = {
+        ...nodeDetails,
+        [selectedNode]: {
+          ...nodeDetails[selectedNode],
+          [field]: updated
+        }
+      };
 
-      const stillUsed = Object.values(nodeDetails).some(d => (d[field] || []).includes(value));
-      if (!stillUsed) {
-        availableSetter(available.filter(item => item !== value));
+      setNodeDetails(updatedNodeDetails);
+      if (field === 'roles') {
+        const stillUsed = Object.values(updatedNodeDetails).some(details =>
+          (details.roles || []).includes(value)
+        );
+        if (!stillUsed) {
+          availableSetter(prev => prev.filter(item => item !== value));
+        }
       }
     };
 
@@ -448,12 +460,10 @@ export default function TimelineRelationshipApp() {
               <span className="slider-thumb"></span>
             </label>
           </div>
-
         </div>
         <div className="header-center">
           <button onClick={() => setShowAddPerson(true)}>Add Person</button>
         </div>
-
         <div className="header-right">
           <button onClick={saveProject}>Save Project</button>
           <label className="file-upload-button" htmlFor="file-upload">Open Project</label>

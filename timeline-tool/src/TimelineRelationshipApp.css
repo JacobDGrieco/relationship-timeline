@@ -238,6 +238,25 @@ body.dark .timeline-event:hover {
   height: 100%;
 }
 
+.details-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.details-label {
+  width: 120px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.details-input {
+  flex: 1;
+  max-width: 220px;
+}
+
 /* Enhanced file upload button */
 .file-upload-label {
   display: inline-block;
