@@ -387,7 +387,7 @@ export default function TimelineRelationshipApp() {
       if (node.image) {
         return { ...node, shape: 'circularImage' };
       }
-      return { ...node, shape: 'dot' }; // fallback
+      return { ...node, shape: 'dot' };
     });
 
 
@@ -723,14 +723,30 @@ export default function TimelineRelationshipApp() {
             <button onClick={() => {
               if (!eventText.trim()) return;
               const timestamp = new Date().toISOString();
-              const snapshot = JSON.parse(JSON.stringify(graphData));
-              setEvents([...events, { text: eventText, timestamp }]);
-              setSnapshots([...snapshots, snapshot]);
+
+              const snapshot = {
+                graphData: JSON.parse(JSON.stringify(graphData)),
+                nodeDetails: JSON.parse(JSON.stringify(nodeDetails)),
+              };
+
+              setEvents(prev => [...prev, { text: eventText, timestamp }]);
+              setSnapshots(prev => [...prev, snapshot]);
               setEventText("");
             }}>Add Event</button>
           </div>
           {events.map((event, idx) => (
-            <div key={idx} className="timeline-event" onClick={() => setGraphData(snapshots[idx])}>
+            <div key={idx} className="timeline-event" onClick={() => {
+              const snapshot = snapshots[idx];
+              setGraphData(snapshot.graphData);
+              setNodeDetails(snapshot.nodeDetails);
+
+              const { nodes, edges } = snapshot.graphData;
+              nodesRef.current.clear();
+              nodesRef.current.add(nodes);
+
+              networkRef.current.body.data.edges.clear();
+              networkRef.current.body.data.edges.add(edges);
+            }}>
               <strong>{new Date(event.timestamp).toLocaleString()}:</strong> {event.text}
             </div>
           ))}
