@@ -582,6 +582,19 @@ body.dark .dropdown-item:hover {
   background-color: #f3f4f6;
 }
 
+.timeline-event.event {
+  border-left: 3px solid #3b82f6;
+  padding-left: 8px;
+  margin-bottom: 8px;
+}
+
+.timeline-event.subevent {
+  border-left: 2px dashed #9ca3af;
+  padding-left: 8px;
+  margin-bottom: 6px;
+  margin-left: 1rem;
+}
+
 .popup-overlay {
   position: fixed;
   top: 0;

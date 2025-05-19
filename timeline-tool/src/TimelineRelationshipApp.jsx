@@ -8,12 +8,18 @@ const SERIES_OPTIONS = ["Series A", "Series B", "Series C"];
 const STATUS_OPTIONS = ["Alive", "Deceased", "Unknown"];
 
 export default function TimelineRelationshipApp() {
-  const [events, setEvents] = useState([]);
+  const [timelineEntries, setTimelineEntries] = useState([]);
   const [eventText, setEventText] = useState("");
+  const [eventType, setEventType] = useState("subevent");
+  const [snapshots, setSnapshots] = useState([]);
   const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
+  const [showTimelinePopup, setShowTimelinePopup] = useState(false);
+  const [entryText, setEntryText] = useState("");
+  const [entryType, setEntryType] = useState("subevent");
+  const [entryDate, setEntryDate] = useState(""); // e.g. '2025-05-17'
+  const [entryTime, setEntryTime] = useState(""); // e.g. '13:45'
   const [graphMounted, setGraphMounted] = useState(false);
   const [projectName, setProjectName] = useState("");
-  const [snapshots, setSnapshots] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
   const [nodeDetails, setNodeDetails] = useState({});
   const [showAddPerson, setShowAddPerson] = useState(false);
@@ -732,20 +738,8 @@ export default function TimelineRelationshipApp() {
         </div>
         <div className="bottom-section">
           <div className="timeline-input">
-            <input type="text" value={eventText} onChange={(e) => setEventText(e.target.value)} placeholder="New event..." />
-            <button onClick={() => {
-              if (!eventText.trim()) return;
-              const timestamp = new Date().toISOString();
+            <button onClick={() => setShowTimelinePopup(true)}>Add Entry</button>
 
-              const snapshot = {
-                graphData: JSON.parse(JSON.stringify(graphData)),
-                nodeDetails: JSON.parse(JSON.stringify(nodeDetails)),
-              };
-
-              setEvents(prev => [...prev, { text: eventText, timestamp }]);
-              setSnapshots(prev => [...prev, snapshot]);
-              setEventText("");
-            }}>Add Event</button>
             <button
               className={`overwrite-button ${selectedSnapshotIndex === null ? 'disabled' : ''}`}
               disabled={selectedSnapshotIndex === null}
@@ -764,12 +758,13 @@ export default function TimelineRelationshipApp() {
                 alert("Snapshot updated successfully.");
               }}>Update Snapshot</button>
           </div>
-          {events.map((event, idx) => (
+          {timelineEntries.map((entry, idx) => (
             <div
               key={idx}
-              className="timeline-event"
+              className={`timeline-event ${entry.type}`}
               onClick={() => {
-                const snapshot = snapshots[idx];
+                const { snapshot } = entry;
+
                 setGraphData(snapshot.graphData);
                 setNodeDetails(snapshot.nodeDetails);
                 setSelectedSnapshotIndex(idx);
@@ -778,10 +773,12 @@ export default function TimelineRelationshipApp() {
                 nodesRef.current.add(snapshot.graphData.nodes);
                 networkRef.current.body.data.edges.clear();
                 networkRef.current.body.data.edges.add(snapshot.graphData.edges);
-              }}>
-              <strong>{new Date(event.timestamp).toLocaleString()}:</strong> {event.text}
+              }}
+            >
+              <strong>{new Date(entry.timestamp).toLocaleString()}:</strong> {entry.text}
             </div>
           ))}
+
         </div>
       </div>
       {showAddPerson && (
@@ -873,6 +870,60 @@ export default function TimelineRelationshipApp() {
             setShowEdgePopup(false);
           }}>Edit</button>
           <button className="delete-button" onClick={() => deleteEdge(selectedEdgeId)}>Delete</button>
+        </div>
+      )}
+      {showTimelinePopup && (
+        <div className="popup-overlay">
+          <div className="popup">
+            <h2>Add Timeline Entry</h2>
+            <label>Entry Name</label>
+            <input
+              type="text"
+              value={entryText}
+              onChange={(e) => setEntryText(e.target.value)}
+              placeholder="e.g. Character Introduced"
+            />
+            <label>Type</label>
+            <select value={entryType} onChange={(e) => setEntryType(e.target.value)}>
+              <option value="event">Event</option>
+              <option value="subevent">Subevent</option>
+            </select>
+            <label>Date</label>
+            <input
+              type="date"
+              value={entryDate}
+              onChange={(e) => setEntryDate(e.target.value)}
+            />
+            <label>Time</label>
+            <input
+              type="time"
+              value={entryTime}
+              onChange={(e) => setEntryTime(e.target.value)}
+            />
+            <div className="actions">
+              <button className="cancel" onClick={() => setShowTimelinePopup(false)}>Cancel</button>
+              <button className="confirm" onClick={() => {
+                if (!entryText.trim() || !entryDate) return;
+                const timestamp = new Date(`${entryDate}T${entryTime || "00:00"}`).toISOString();
+
+                const snapshot = {
+                  graphData: JSON.parse(JSON.stringify(graphData)),
+                  nodeDetails: JSON.parse(JSON.stringify(nodeDetails))
+                };
+
+                setTimelineEntries(prev => [
+                  ...prev,
+                  { type: entryType, text: entryText, timestamp, snapshot }
+                ]);
+                setSnapshots(prev => [...prev, snapshot]);
+                setShowTimelinePopup(false);
+                setEntryText("");
+                setEntryType("subevent");
+                setEntryDate("");
+                setEntryTime("");
+              }}>Add Entry</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
