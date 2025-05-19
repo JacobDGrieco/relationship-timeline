@@ -398,8 +398,24 @@ export default function TimelineRelationshipApp() {
 
     const data = { nodes, edges };
     const options = {
-      physics: false,
-      height: "100%",
+      physics: {
+        enabled: true,
+        solver: "repulsion",
+        repulsion: {
+          nodeDistance: 150,
+          centralGravity: 0.1,
+          springLength: 200,
+          springConstant: 0.05,
+          damping: 0.09
+        },
+        stabilization: {
+          iterations: 100,
+          fit: true
+        }
+      },
+      layout: {
+        improvedLayout: true
+      },
       nodes: {
         shape: "dot",
         size: 40,
@@ -413,11 +429,9 @@ export default function TimelineRelationshipApp() {
           to: { enabled: true, scaleFactor: 1 }
         },
         font: { align: "top" },
-      },
-      layout: {
-        improvedLayout: true
       }
     };
+
 
     if (containerRef.current) {
       networkRef.current = new Network(containerRef.current, data, options);
