@@ -35,7 +35,7 @@ export default function TimelineRelationshipApp() {
   const roleInputRef = useRef(null);
   const secondaryInputRef = useRef(null);
   const nodesRef = useRef(null);
-  
+
 
   const renderDropdownSuggestions = (filter, options, onSelect, show) => {
     const matches = options.filter(o => o.toLowerCase().includes(filter.toLowerCase()));
@@ -130,11 +130,20 @@ export default function TimelineRelationshipApp() {
       if (file) {
         const reader = new FileReader();
         reader.onloadend = () => {
-          handleNodeFieldChange('image', reader.result);
+          const imageData = reader.result;
+
+          handleNodeFieldChange('image', imageData);
+
+          networkRef.current.body.data.nodes.update({
+            id: selectedNode,
+            image: imageData,
+            shape: 'circularImage',
+          });
         };
         reader.readAsDataURL(file);
       }
     };
+
 
     const addSuggestion = (field, value, available, setter) => {
       if (!value.trim()) return;
@@ -368,11 +377,12 @@ export default function TimelineRelationshipApp() {
 
   useEffect(() => {
     const processedNodes = graphData.nodes.map(node => {
-      if (node.shape === 'circularImage' && !node.image) {
-        return { ...node, shape: 'dot' };
+      if (node.image) {
+        return { ...node, shape: 'circularImage' };
       }
-      return node;
+      return { ...node, shape: 'dot' }; // fallback
     });
+
 
     const nodes = new DataSet(processedNodes);
     const edges = new DataSet(graphData.edges);
@@ -454,36 +464,36 @@ export default function TimelineRelationshipApp() {
   };
 
   const handleAddPerson = () => {
-  const id = generateUniqueId();
-  const label = personName || `Node ${id}`;
+    const id = generateUniqueId();
+    const label = personName || `Node ${id}`;
 
-  const newNode = {
-    id,
-    label,
+    const newNode = {
+      id,
+      label,
+    };
+
+    nodesRef.current.add(newNode);
+
+    setGraphData(prev => ({
+      nodes: [...prev.nodes, newNode],
+      edges: [...prev.edges]
+    }));
+
+    setNodeDetails(prev => ({
+      ...prev,
+      [id]: {
+        name: personName,
+        primarySeries: personSeries,
+        roles: [],
+        secondarySeries: [],
+        status: 'Alive',
+      },
+    }));
+
+    setPersonName('');
+    setPersonSeries('');
+    setShowAddPerson(false);
   };
-
-  nodesRef.current.add(newNode);
-
-  setGraphData(prev => ({
-    nodes: [...prev.nodes, newNode],
-    edges: [...prev.edges]
-  }));
-
-  setNodeDetails(prev => ({
-    ...prev,
-    [id]: {
-      name: personName,
-      primarySeries: personSeries,
-      roles: [],
-      secondarySeries: [],
-      status: 'Alive',
-    },
-  }));
-
-  setPersonName('');
-  setPersonSeries('');
-  setShowAddPerson(false);
-};
 
 
   const loadProjectZip = async (file) => {
