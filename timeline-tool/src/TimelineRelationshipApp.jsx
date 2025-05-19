@@ -11,6 +11,7 @@ export default function TimelineRelationshipApp() {
   const [events, setEvents] = useState([]);
   const [eventText, setEventText] = useState("");
   const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
+  const [graphMounted, setGraphMounted] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [history, setHistory] = useState([]);
   const [future, setFuture] = useState([]);
@@ -27,12 +28,14 @@ export default function TimelineRelationshipApp() {
   const [showDropdown, setShowDropdown] = useState({ roles: false, secondarySeries: false });
   const [isDetailsVisible, setIsDetailsVisible] = useState(false);
   const [justClosedRecently, setJustClosedRecently] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
 
   const containerRef = useRef();
   const networkRef = useRef();
   const roleInputRef = useRef(null);
   const secondaryInputRef = useRef(null);
-
+  const nodesRef = useRef(null);
+  
 
   const renderDropdownSuggestions = (filter, options, onSelect, show) => {
     const matches = options.filter(o => o.toLowerCase().includes(filter.toLowerCase()));
@@ -182,143 +185,180 @@ export default function TimelineRelationshipApp() {
           }}
         >×</button>
 
-        <div className="details-content">
-          <h3 className="text-lg font-bold mb-2">Node {selectedNode} Details</h3>
+        <div className="details-header">
+          {isEditingName ? (
+            <input
+              type="text"
+              autoFocus
+              defaultValue={nodeDetails[selectedNode]?.name || `Node ${selectedNode}`}
+              onBlur={() => setIsEditingName(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const newName = e.target.value.trim();
+                  if (newName) {
+                    // Update state
+                    setNodeDetails(prev => ({
+                      ...prev,
+                      [selectedNode]: {
+                        ...prev[selectedNode],
+                        name: newName,
+                      },
+                    }));
 
-          {/* 1. Image Upload */}
-          <div className="details-row">
-            <label className="details-label">Image</label>
-            <div className="details-input">
-              <label className="file-upload-label">
-                Upload Image
-                <input type="file" className="file-upload-input" accept="image/*" onChange={handleImageUpload} />
-              </label>
-              {data.image && <div className="file-name">Image uploaded</div>}
-            </div>
-          </div>
+                    // Update vis-network label
+                    networkRef.current.body.data.nodes.update({
+                      id: selectedNode,
+                      label: newName,
+                    });
 
-          {/* 2. Primary Series */}
-          <div className="details-row">
-            <label className="details-label">Primary Series</label>
-            <select
-              className="details-input"
-              value={data.primarySeries || ''}
-              onChange={(e) => handleNodeFieldChange('primarySeries', e.target.value)}
+                    setIsEditingName(false);
+                  }
+                }
+              }}
+              className="editable-node-name"
+            />
+          ) : (
+            <h3
+              className="text-lg font-bold mb-2 editable-node-name"
+              onClick={() => setIsEditingName(true)}
             >
-              <option value="">Select a series</option>
-              {SERIES_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
+              {nodeDetails[selectedNode]?.name || `Node ${selectedNode}`}
+            </h3>
+          )}
+        </div>
 
-          {/* Secondary Series */}
-          <div className="details-row">
-            <label className="details-label">Secondary Series</label>
-            <div className="details-input relative">
-              <input
-                ref={secondaryInputRef}
-                type="text"
-                placeholder="Type and press Enter"
-                onKeyDown={(e) => handleRoleKeyDown(e, 'secondarySeries', setAvailableSecondarySeries)}
-                onChange={(e) => {
-                  setDropdownFilter(e.target.value);
-                  setShowDropdown(prev => ({ ...prev, secondarySeries: true }));
-                }}
-                onFocus={() => setShowDropdown(prev => ({ ...prev, secondarySeries: true }))}
-                onBlur={() => setTimeout(() => setShowDropdown(prev => ({ ...prev, secondarySeries: false })), 150)}
-                className="w-full border rounded p-1"
-              />
-              {showDropdown.secondarySeries && filteredSecondarySeries.length > 0 && (
-                <div className="dropdown-list">
-                  {filteredSecondarySeries.map((option) => (
-                    <div
-                      key={option}
-                      className="dropdown-item"
-                      onMouseDown={() => addSuggestion('secondarySeries', option, availableSecondarySeries, setAvailableSecondarySeries)}
-                    >
-                      {option}
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="tag-container">
-                {currentSecondaries.map((val) => (
-                  <span className="tag cursor-pointer" key={val} onClick={() =>
-                    handleRemoveValue('secondarySeries', val, availableSecondarySeries, setAvailableSecondarySeries)
-                  }>{val}</span>
+        {/* 1. Image Upload */}
+        <div className="details-row">
+          <label className="details-label">Image</label>
+          <div className="details-input">
+            <label className="file-upload-label">
+              Upload Image
+              <input type="file" className="file-upload-input" accept="image/*" onChange={handleImageUpload} />
+            </label>
+            {data.image && <div className="file-name">Image uploaded</div>}
+          </div>
+        </div>
+
+        {/* 2. Primary Series */}
+        <div className="details-row">
+          <label className="details-label">Primary Series</label>
+          <select
+            className="details-input"
+            value={data.primarySeries || ''}
+            onChange={(e) => handleNodeFieldChange('primarySeries', e.target.value)}
+          >
+            {SERIES_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Secondary Series */}
+        <div className="details-row">
+          <label className="details-label">Secondary Series</label>
+          <div className="details-input relative">
+            <input
+              ref={secondaryInputRef}
+              type="text"
+              placeholder="Type and press Enter"
+              onKeyDown={(e) => handleRoleKeyDown(e, 'secondarySeries', setAvailableSecondarySeries)}
+              onChange={(e) => {
+                setDropdownFilter(e.target.value);
+                setShowDropdown(prev => ({ ...prev, secondarySeries: true }));
+              }}
+              onFocus={() => setShowDropdown(prev => ({ ...prev, secondarySeries: true }))}
+              onBlur={() => setTimeout(() => setShowDropdown(prev => ({ ...prev, secondarySeries: false })), 150)}
+              className="w-full border rounded p-1"
+            />
+            {showDropdown.secondarySeries && filteredSecondarySeries.length > 0 && (
+              <div className="dropdown-list">
+                {filteredSecondarySeries.map((option) => (
+                  <div
+                    key={option}
+                    className="dropdown-item"
+                    onMouseDown={() => addSuggestion('secondarySeries', option, availableSecondarySeries, setAvailableSecondarySeries)}
+                  >
+                    {option}
+                  </div>
                 ))}
               </div>
+            )}
+            <div className="tag-container">
+              {currentSecondaries.map((val) => (
+                <span className="tag cursor-pointer" key={val} onClick={() =>
+                  handleRemoveValue('secondarySeries', val, availableSecondarySeries, setAvailableSecondarySeries)
+                }>{val}</span>
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* 4. Status */}
-          <div className="details-row">
-            <label className="details-label">Status</label>
-            <select
-              className="details-input"
-              value={data.status || 'Alive'}
-              onChange={(e) => handleNodeFieldChange('status', e.target.value)}
-            >
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
+        {/* 4. Status */}
+        <div className="details-row">
+          <label className="details-label">Status</label>
+          <select
+            className="details-input"
+            value={data.status || 'Alive'}
+            onChange={(e) => handleNodeFieldChange('status', e.target.value)}
+          >
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
 
-          {/* Current Role(s) */}
-          <div className="details-row">
-            <label className="details-label">Current Role(s)</label>
-            <div className="details-input relative">
-              <input
-                ref={roleInputRef}
-                type="text"
-                placeholder="Type and press Enter"
-                onKeyDown={(e) => handleRoleKeyDown(e, 'roles', setAvailableRoles)}
-                onChange={(e) => {
-                  setRoleDropdownFilter(e.target.value);
-                  setShowDropdown(prev => ({ ...prev, roles: true }));
-                }}
-                onFocus={() => setShowDropdown(prev => ({ ...prev, roles: true }))}
-                onBlur={() => setTimeout(() => setShowDropdown(prev => ({ ...prev, roles: false })), 150)}
-                className="w-full border rounded p-1"
-              />
-              {showDropdown.roles && filteredRoles.length > 0 && (
-                <div className="dropdown-list">
-                  {filteredRoles.map((option) => (
-                    <div
-                      className="dropdown-item"
-                      key={option}
-                      onMouseEnter={(e) => {
-                        const wrapper = e.currentTarget;
-                        const span = wrapper.querySelector("span");
-                        wrapper.classList.add("hover-scroll");
+        {/* Current Role(s) */}
+        <div className="details-row">
+          <label className="details-label">Current Role(s)</label>
+          <div className="details-input relative">
+            <input
+              ref={roleInputRef}
+              type="text"
+              placeholder="Type and press Enter"
+              onKeyDown={(e) => handleRoleKeyDown(e, 'roles', setAvailableRoles)}
+              onChange={(e) => {
+                setRoleDropdownFilter(e.target.value);
+                setShowDropdown(prev => ({ ...prev, roles: true }));
+              }}
+              onFocus={() => setShowDropdown(prev => ({ ...prev, roles: true }))}
+              onBlur={() => setTimeout(() => setShowDropdown(prev => ({ ...prev, roles: false })), 150)}
+              className="w-full border rounded p-1"
+            />
+            {showDropdown.roles && filteredRoles.length > 0 && (
+              <div className="dropdown-list">
+                {filteredRoles.map((option) => (
+                  <div
+                    className="dropdown-item"
+                    key={option}
+                    onMouseEnter={(e) => {
+                      const wrapper = e.currentTarget;
+                      const span = wrapper.querySelector("span");
+                      wrapper.classList.add("hover-scroll");
 
-                        const overflowAmount = span.scrollWidth - wrapper.clientWidth;
-                        if (overflowAmount > 0) {
-                          span.style.transform = `translateX(-${overflowAmount}px)`;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        const wrapper = e.currentTarget;
-                        const span = wrapper.querySelector("span");
-                        span.style.transform = "translateX(0px)";
-                        wrapper.classList.remove("hover-scroll");
-                      }}
-                    >
-                      <span>{option}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="tag-container">
-                {currentRoles.map((val) => (
-                  <span className="tag cursor-pointer" key={val} onClick={() =>
-                    handleRemoveValue('roles', val, availableRoles, setAvailableRoles)
-                  }>{val}</span>
+                      const overflowAmount = span.scrollWidth - wrapper.clientWidth;
+                      if (overflowAmount > 0) {
+                        span.style.transform = `translateX(-${overflowAmount}px)`;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      const wrapper = e.currentTarget;
+                      const span = wrapper.querySelector("span");
+                      span.style.transform = "translateX(0px)";
+                      wrapper.classList.remove("hover-scroll");
+                    }}
+                  >
+                    <span>{option}</span>
+                  </div>
                 ))}
               </div>
+            )}
+
+            <div className="tag-container">
+              {currentRoles.map((val) => (
+                <span className="tag cursor-pointer" key={val} onClick={() =>
+                  handleRemoveValue('roles', val, availableRoles, setAvailableRoles)
+                }>{val}</span>
+              ))}
             </div>
           </div>
         </div>
@@ -336,6 +376,9 @@ export default function TimelineRelationshipApp() {
 
     const nodes = new DataSet(processedNodes);
     const edges = new DataSet(graphData.edges);
+    nodesRef.current = nodes;
+    setGraphMounted(true);
+
     const data = { nodes, edges };
     const options = {
       physics: false,
@@ -406,19 +449,42 @@ export default function TimelineRelationshipApp() {
     reader.readAsDataURL(file);
   };
 
-  const handleAddPerson = () => {
-    if (!personName.trim()) return;
-    const id = graphData.nodes.length + 1;
-    const newNode = { id, label: personName };
-    updateGraphData({ ...graphData, nodes: [...graphData.nodes, newNode] });
-    setNodeDetails({
-      ...nodeDetails,
-      [id]: { series: personSeries }
-    });
-    setPersonName("");
-    setPersonSeries("");
-    setShowAddPerson(false);
+  const generateUniqueId = () => {
+    return 'node-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
   };
+
+  const handleAddPerson = () => {
+  const id = generateUniqueId();
+  const label = personName || `Node ${id}`;
+
+  const newNode = {
+    id,
+    label,
+  };
+
+  nodesRef.current.add(newNode);
+
+  setGraphData(prev => ({
+    nodes: [...prev.nodes, newNode],
+    edges: [...prev.edges]
+  }));
+
+  setNodeDetails(prev => ({
+    ...prev,
+    [id]: {
+      name: personName,
+      primarySeries: personSeries,
+      roles: [],
+      secondarySeries: [],
+      status: 'Alive',
+    },
+  }));
+
+  setPersonName('');
+  setPersonSeries('');
+  setShowAddPerson(false);
+};
+
 
   const loadProjectZip = async (file) => {
     const zip = await JSZip.loadAsync(file);
@@ -499,7 +565,7 @@ export default function TimelineRelationshipApp() {
           </div>
         </div>
         <div className="header-center">
-          <button onClick={() => setShowAddPerson(true)}>Add Person</button>
+          <button onClick={() => setShowAddPerson(true)} disabled={!graphMounted}>Add Person</button>
         </div>
         <div className="header-right">
           <button onClick={saveProject}>Save Project</button>
@@ -541,7 +607,19 @@ export default function TimelineRelationshipApp() {
             <label>Name</label>
             <input type="text" value={personName} onChange={(e) => setPersonName(e.target.value)} />
             <label>Series</label>
-            <input type="text" value={personSeries} onChange={(e) => setPersonSeries(e.target.value)} />
+            <select
+              value={personSeries}
+              onChange={(e) => setPersonSeries(e.target.value)}
+              className="popup-dropdown"
+            >
+              <option value="">Select a series</option>
+              {SERIES_OPTIONS.map((series) => (
+                <option key={series} value={series}>
+                  {series}
+                </option>
+              ))}
+            </select>
+
             <div className="actions">
               <button className="cancel" onClick={() => setShowAddPerson(false)}>Cancel</button>
               <button className="confirm" onClick={handleAddPerson}>Add</button>
