@@ -36,6 +36,7 @@ export default function TimelineRelationshipApp() {
   const [showEdgePopup, setShowEdgePopup] = useState(false);
   const [edgePopupPosition, setEdgePopupPosition] = useState({ x: 0, y: 0 });
   const [editingEdgeId, setEditingEdgeId] = useState(null);
+  const [selectedSnapshotIndex, setSelectedSnapshotIndex] = useState(null);
 
   const containerRef = useRef();
   const networkRef = useRef();
@@ -644,14 +645,25 @@ export default function TimelineRelationshipApp() {
     setEvents(projectData.events || []);
     setGraphData(projectData.graphData || { nodes: [], edges: [] });
     setNodeDetails(nodeDetailsWithImages);
-    setHistory([]);
-    setFuture([]);
-    setSnapshots([]);
+    setSnapshots(projectData.snapshots || []);
   };
 
   const saveProject = async () => {
     const zip = new JSZip();
     const cleanDetails = {};
+    const images = {};
+    const updatedNodeDetails = { ...nodeDetails };
+
+    Object.entries(nodeDetails).forEach(([id, details]) => {
+      if (details.image && details.image.startsWith("data:image")) {
+        const imageName = `images/${id}.png`;
+        images[imageName] = details.image;
+        updatedNodeDetails[id] = {
+          ...details,
+          image: imageName,
+        };
+      }
+    });
 
     for (const [id, fields] of Object.entries(nodeDetails)) {
       cleanDetails[id] = { ...fields };
@@ -666,10 +678,11 @@ export default function TimelineRelationshipApp() {
     }
 
     const projectData = {
-      name: projectName,
-      events,
       graphData,
-      nodeDetails: cleanDetails
+      nodeDetails: updatedNodeDetails,
+      events,
+      snapshots,
+      images
     };
 
     zip.file("project.json", JSON.stringify(projectData, null, 2));
@@ -733,20 +746,39 @@ export default function TimelineRelationshipApp() {
               setSnapshots(prev => [...prev, snapshot]);
               setEventText("");
             }}>Add Event</button>
+            <button
+              className={`overwrite-button ${selectedSnapshotIndex === null ? 'disabled' : ''}`}
+              disabled={selectedSnapshotIndex === null}
+              onClick={() => {
+                if (selectedSnapshotIndex === null) return;
+
+                const updatedSnapshot = {
+                  graphData: JSON.parse(JSON.stringify(graphData)),
+                  nodeDetails: JSON.parse(JSON.stringify(nodeDetails)),
+                };
+
+                const updatedSnapshots = [...snapshots];
+                updatedSnapshots[selectedSnapshotIndex] = updatedSnapshot;
+                setSnapshots(updatedSnapshots);
+
+                alert("Snapshot updated successfully.");
+              }}>Update Snapshot</button>
           </div>
           {events.map((event, idx) => (
-            <div key={idx} className="timeline-event" onClick={() => {
-              const snapshot = snapshots[idx];
-              setGraphData(snapshot.graphData);
-              setNodeDetails(snapshot.nodeDetails);
+            <div
+              key={idx}
+              className="timeline-event"
+              onClick={() => {
+                const snapshot = snapshots[idx];
+                setGraphData(snapshot.graphData);
+                setNodeDetails(snapshot.nodeDetails);
+                setSelectedSnapshotIndex(idx);
 
-              const { nodes, edges } = snapshot.graphData;
-              nodesRef.current.clear();
-              nodesRef.current.add(nodes);
-
-              networkRef.current.body.data.edges.clear();
-              networkRef.current.body.data.edges.add(edges);
-            }}>
+                nodesRef.current.clear();
+                nodesRef.current.add(snapshot.graphData.nodes);
+                networkRef.current.body.data.edges.clear();
+                networkRef.current.body.data.edges.add(snapshot.graphData.edges);
+              }}>
               <strong>{new Date(event.timestamp).toLocaleString()}:</strong> {event.text}
             </div>
           ))}

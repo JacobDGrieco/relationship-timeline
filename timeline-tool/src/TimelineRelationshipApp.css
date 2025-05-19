@@ -551,6 +551,27 @@ body.dark .dropdown-item:hover {
   background-color: #059669;
 }
 
+.overwrite-button {
+  margin-left: 0.75rem;
+  background-color: #facc15;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.overwrite-button:hover {
+  background-color: #eab308;
+}
+
+.overwrite-button.disabled {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
 .timeline-event {
   padding: 0.5rem;
   border-bottom: 1px solid #e5e7eb;
