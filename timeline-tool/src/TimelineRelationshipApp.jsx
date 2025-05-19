@@ -13,8 +13,6 @@ export default function TimelineRelationshipApp() {
   const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
   const [graphMounted, setGraphMounted] = useState(false);
   const [projectName, setProjectName] = useState("");
-  const [history, setHistory] = useState([]);
-  const [future, setFuture] = useState([]);
   const [snapshots, setSnapshots] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
   const [nodeDetails, setNodeDetails] = useState({});
@@ -29,6 +27,15 @@ export default function TimelineRelationshipApp() {
   const [isDetailsVisible, setIsDetailsVisible] = useState(false);
   const [justClosedRecently, setJustClosedRecently] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
+  const [showAddConnection, setShowAddConnection] = useState(false);
+  const [connectionSource, setConnectionSource] = useState('');
+  const [connectionTarget, setConnectionTarget] = useState('');
+  const [connectionLabel, setConnectionLabel] = useState('');
+  const [connectionDirection, setConnectionDirection] = useState('normal');
+  const [selectedEdgeId, setSelectedEdgeId] = useState(null);
+  const [showEdgePopup, setShowEdgePopup] = useState(false);
+  const [edgePopupPosition, setEdgePopupPosition] = useState({ x: 0, y: 0 });
+  const [editingEdgeId, setEditingEdgeId] = useState(null);
 
   const containerRef = useRef();
   const networkRef = useRef();
@@ -416,10 +423,24 @@ export default function TimelineRelationshipApp() {
       networkRef.current = new Network(containerRef.current, data, options);
       networkRef.current.on("click", function (params) {
         if (params.nodes.length === 1) {
-          const nodeId = params.nodes[0]; // ✅ Get the actual clicked node ID
+          const nodeId = params.nodes[0];
           setSelectedNode(nodeId);
           setIsDetailsVisible(true);
           setJustClosedRecently(true);
+        }
+      });
+      networkRef.current.on("click", function (params) {
+        if (params.edges.length === 1) {
+          const edgeId = params.edges[0];
+          const edge = networkRef.current.body.data.edges.get(edgeId);
+
+          const pointer = params.pointer.DOM;
+          setSelectedEdgeId(edgeId);
+          setShowEdgePopup(true);
+          setEdgePopupPosition({ x: pointer.x, y: pointer.y });
+        } else {
+          setShowEdgePopup(false);
+          setSelectedEdgeId(null);
         }
       });
     }
@@ -492,7 +513,97 @@ export default function TimelineRelationshipApp() {
 
     setPersonName('');
     setPersonSeries('');
+    setConnectionLabel('');
+    setConnectionDirection('normal');
     setShowAddPerson(false);
+  };
+
+  const getArrowDirection = (direction) => {
+    switch (direction) {
+      case 'normal':
+        return { to: { enabled: true } };
+      case 'reverse':
+        return { from: { enabled: true } };
+      case 'both':
+        return { to: { enabled: true }, from: { enabled: true } };
+      case 'none':
+      default:
+        return { to: { enabled: false }, from: { enabled: false } };
+    }
+  };
+
+  const getArrowDirectionLabel = (arrows) => {
+    const from = arrows?.from?.enabled;
+    const to = arrows?.to?.enabled;
+
+    if (from && to) return 'both';
+    if (from) return 'reverse';
+    if (to) return 'normal';
+    return 'none';
+  };
+
+
+  const handleAddConnection = () => {
+    const allNodeDetails = Object.entries(nodeDetails);
+
+    const sourceEntry = allNodeDetails.find(([, data]) => data.name === connectionSource);
+    const targetEntry = allNodeDetails.find(([, data]) => data.name === connectionTarget);
+
+    if (!sourceEntry || !targetEntry) {
+      alert('One or both node names not found.');
+      return;
+    }
+
+    const fromId = sourceEntry[0];
+    const toId = targetEntry[0];
+
+    const updatedEdge = {
+      from: fromId,
+      to: toId,
+      label: connectionLabel,
+      arrows: getArrowDirection(connectionDirection)
+    };
+
+    if (editingEdgeId) {
+      updatedEdge.id = editingEdgeId;
+      networkRef.current.body.data.edges.update(updatedEdge);
+
+      setGraphData(prev => ({
+        ...prev,
+        edges: prev.edges.map(edge =>
+          edge.id === editingEdgeId ? { ...updatedEdge } : edge
+        )
+      }));
+      setEditingEdgeId(null);
+    } else {
+      const id = generateUniqueId();
+      updatedEdge.id = id;
+
+      networkRef.current.body.data.edges.add(updatedEdge);
+
+      setGraphData(prev => ({
+        ...prev,
+        edges: [...prev.edges, updatedEdge]
+      }));
+    }
+
+    setConnectionSource('');
+    setConnectionTarget('');
+    setConnectionLabel('');
+    setConnectionDirection('normal');
+    setShowAddConnection(false);
+  };
+
+  const deleteEdge = (edgeId) => {
+    networkRef.current.body.data.edges.remove({ id: edgeId });
+
+    setGraphData(prev => ({
+      nodes: [...prev.nodes],
+      edges: prev.edges.filter(edge => edge.id !== edgeId)
+    }));
+
+    setShowEdgePopup(false);
+    setSelectedEdgeId(null);
   };
 
 
@@ -576,6 +687,7 @@ export default function TimelineRelationshipApp() {
         </div>
         <div className="header-center">
           <button onClick={() => setShowAddPerson(true)} disabled={!graphMounted}>Add Person</button>
+          <button className="header-button" onClick={() => setShowAddConnection(true)}>Add Connection</button>
         </div>
         <div className="header-right">
           <button onClick={saveProject}>Save Project</button>
@@ -635,6 +747,70 @@ export default function TimelineRelationshipApp() {
               <button className="confirm" onClick={handleAddPerson}>Add</button>
             </div>
           </div>
+        </div>
+      )}
+      {showAddConnection && (
+        <div className="popup-overlay">
+          <div className="popup">
+            <h2>Add Connection</h2>
+            <label>Source Name</label>
+            <input
+              type="text"
+              value={connectionSource}
+              onChange={(e) => setConnectionSource(e.target.value)}
+              placeholder="Enter source node name"
+            />
+            <label>Target Name</label>
+            <input
+              type="text"
+              value={connectionTarget}
+              onChange={(e) => setConnectionTarget(e.target.value)}
+              placeholder="Enter target node name"
+            />
+            <label>Connection Name (Label)</label>
+            <input
+              type="text"
+              value={connectionLabel}
+              onChange={(e) => setConnectionLabel(e.target.value)}
+              placeholder="Optional label"
+            />
+            <label>Direction</label>
+            <div className="connection-direction">
+              {['normal', 'reverse', 'both', 'none'].map((dir) => (
+                <label key={dir} className="direction-option">
+                  <input
+                    type="radio"
+                    value={dir}
+                    checked={connectionDirection === dir}
+                    onChange={(e) => setConnectionDirection(e.target.value)}
+                  />
+                  {dir.charAt(0).toUpperCase() + dir.slice(1)}
+                </label>
+              ))}
+            </div>
+            <div className="actions">
+              <button className="cancel" onClick={() => setShowAddConnection(false)}>Cancel</button>
+              <button className="confirm" onClick={handleAddConnection}>Add</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showEdgePopup && selectedEdgeId && (
+        <div className="edge-popup" style={{ top: edgePopupPosition.y, left: edgePopupPosition.x }}>
+          <button onClick={() => {
+            const edge = networkRef.current.body.data.edges.get(selectedEdgeId);
+            const sourceName = nodeDetails[edge.from]?.name || '';
+            const targetName = nodeDetails[edge.to]?.name || '';
+
+            setConnectionSource(sourceName);
+            setConnectionTarget(targetName);
+            setConnectionLabel(edge.label || '');
+            setConnectionDirection(getArrowDirectionLabel(edge.arrows));
+            setEditingEdgeId(selectedEdgeId);
+            setShowAddConnection(true);
+            setShowEdgePopup(false);
+          }}>Edit</button>
+          <button className="delete-button" onClick={() => deleteEdge(selectedEdgeId)}>Delete</button>
         </div>
       )}
     </div>
