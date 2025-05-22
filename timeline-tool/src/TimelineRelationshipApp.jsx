@@ -9,15 +9,13 @@ const STATUS_OPTIONS = ["Alive", "Deceased", "Unknown"];
 
 export default function TimelineRelationshipApp() {
   const [timelineEntries, setTimelineEntries] = useState([]);
-  const [eventText, setEventText] = useState("");
-  const [eventType, setEventType] = useState("subevent");
   const [snapshots, setSnapshots] = useState([]);
   const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
   const [showTimelinePopup, setShowTimelinePopup] = useState(false);
   const [entryText, setEntryText] = useState("");
-  const [entryType, setEntryType] = useState("subevent");
-  const [entryDate, setEntryDate] = useState("");
-  const [entryTime, setEntryTime] = useState("");
+  const [entryType, setEntryType] = useState("event");
+  const [entryDate, setEntryDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [entryTime, setEntryTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [zoomScale, setZoomScale] = useState(0);
   const [graphMounted, setGraphMounted] = useState(false);
   const [projectName, setProjectName] = useState("");
@@ -44,8 +42,14 @@ export default function TimelineRelationshipApp() {
   const [edgePopupPosition, setEdgePopupPosition] = useState({ x: 0, y: 0 });
   const [editingEdgeId, setEditingEdgeId] = useState(null);
   const [selectedSnapshotIndex, setSelectedSnapshotIndex] = useState(null);
-  const [timelineStartDate, setTimelineStartDate] = useState("");
-  const [timelineEndDate, setTimelineEndDate] = useState("");
+  const [timelineStartDate, setTimelineStartDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+  });
+  const [timelineEndDate, setTimelineEndDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
+  });
 
   const containerRef = useRef();
   const networkRef = useRef();
@@ -53,6 +57,7 @@ export default function TimelineRelationshipApp() {
   const secondaryInputRef = useRef(null);
   const nodesRef = useRef(null);
   const timelineTrackRef = useRef(null);
+  const lastActiveTickRef = useRef(null);
 
   const renderDropdownSuggestions = (filter, options, onSelect, show) => {
     const matches = options.filter(o => o.toLowerCase().includes(filter.toLowerCase()));
@@ -655,7 +660,9 @@ export default function TimelineRelationshipApp() {
     );
 
     setProjectName(projectData.name || "");
-    setEvents(projectData.events || []);
+    setTimelineEntries(projectData.timelineEntries || []);
+    setTimelineStartDate(projectData.timelineStartDate || "");
+    setTimelineEndDate(projectData.timelineEndDate || "");
     setGraphData(projectData.graphData || { nodes: [], edges: [] });
     setNodeDetails(nodeDetailsWithImages);
     setSnapshots(projectData.snapshots || []);
@@ -704,7 +711,9 @@ export default function TimelineRelationshipApp() {
     const projectData = {
       graphData,
       nodeDetails: updatedNodeDetails,
-      events,
+      timelineEntries,
+      timelineStartDate,
+      timelineEndDate,
       snapshots,
       images
     };
@@ -738,17 +747,30 @@ export default function TimelineRelationshipApp() {
     const stopTime = new Date(new Date(timelineEndDate).setHours(23, 59, 59, 999)).getTime();
     const range = stopTime - startTime || 1;
 
+    const stackMap = {};
     return timelineEntries.map((entry, idx) => {
-      const entryTime = new Date(entry.timestamp).getTime();
-      const leftPx = ((entryTime - startTime) / range) * (fullWidth - 100) + 25;
-      const inView = entryTime >= startTime && entryTime <= stopTime;
+    const entryTime = new Date(entry.timestamp).getTime();
+    const leftPx = ((entryTime - startTime) / range) * (fullWidth - 100) + 25;
+    const stackKey = entry.timestamp;
+    const verticalOffset = (stackMap[stackKey] || 0) * 20;
+    stackMap[stackKey] = (stackMap[stackKey] || 0) + 1;
+    const inView = entryTime >= startTime && entryTime <= stopTime;
 
       return (
         <div
           key={idx}
           className={`timeline-tick ${entry.type}`}
-          style={{ left: `${leftPx}px`, opacity: inView ? 1 : 0.15, pointerEvents: inView ? 'auto' : 'none' }}
+          style={{ left: `${leftPx}px`, top: `${verticalOffset}px`, opacity: inView ? 1 : 0.15, pointerEvents: inView ? 'auto' : 'none' }}
           onClick={() => {
+            if (lastActiveTickRef.current !== null) {
+              const lastActive = document.querySelector(`.timeline-tick.active`);
+              if (lastActive) lastActive.classList.remove('active');
+            }
+
+            const currentTick = document.querySelectorAll('.timeline-tick')[idx];
+            if (currentTick) currentTick.classList.add('active');
+            lastActiveTickRef.current = idx;
+
             const snapshot = entry.snapshot;
             setGraphData(snapshot.graphData);
             setNodeDetails(snapshot.nodeDetails);
@@ -803,7 +825,7 @@ export default function TimelineRelationshipApp() {
         <div className="bottom-section">
           <div className="timeline-input" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button onClick={() => setShowTimelinePopup(true)}>Add Entry</button>
+              <button onClick={() => setShowTimelinePopup(true)}>Add Event</button>
               <button onClick={() => {
                 if (selectedSnapshotIndex !== null && timelineEntries[selectedSnapshotIndex]) {
                   const updated = [...timelineEntries];
@@ -816,7 +838,7 @@ export default function TimelineRelationshipApp() {
                   };
                   setTimelineEntries(updated);
                 }
-              }}>Update Snapshot</button>
+              }}>Update Event</button>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <label>Start Date</label>
@@ -955,8 +977,8 @@ export default function TimelineRelationshipApp() {
       {showTimelinePopup && (
         <div className="popup-overlay">
           <div className="popup">
-            <h2>Add Timeline Entry</h2>
-            <label>Entry Name</label>
+            <h2>Add Event</h2>
+            <label>Event Name</label>
             <input
               type="text"
               value={entryText}
@@ -964,10 +986,26 @@ export default function TimelineRelationshipApp() {
               placeholder="e.g. Character Introduced"
             />
             <label>Type</label>
-            <select value={entryType} onChange={(e) => setEntryType(e.target.value)}>
-              <option value="event">Event</option>
-              <option value="subevent">Subevent</option>
-            </select>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <label>
+                <input
+                  type="radio"
+                  value="event"
+                  checked={entryType === "event"}
+                  onChange={() => setEntryType("event")}
+                />
+                Event
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="subevent"
+                  checked={entryType === "subevent"}
+                  onChange={() => setEntryType("subevent")}
+                />
+                Subevent
+              </label>
+            </div>
             <label>Date</label>
             <input
               type="date"

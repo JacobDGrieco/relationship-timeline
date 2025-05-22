@@ -228,7 +228,7 @@ body.dark .timeline-event:hover {
 .top-section {
   display: flex;
   flex-direction: row;
-  flex: 2 1 auto;
+  flex: 0 0 80%;
   gap: 1rem;
   overflow: visible;
   min-height: 0;
@@ -520,7 +520,7 @@ body.dark .dropdown-item:hover {
 }
 
 .bottom-section {
-  flex: 1 1 auto;
+  flex: 3 1 auto;
   background: white;
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
@@ -607,11 +607,10 @@ body.dark .dropdown-item:hover {
 /* Horizontal Timeline Track */
 .timeline-track {
   position: relative;
-  height: 100px;
+  height: 100%;
   width: 1100%;
   max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   border-top: 2px solid #ccc;
   white-space: nowrap;
   scroll-behavior: smooth;
@@ -626,10 +625,17 @@ body.dark .dropdown-item:hover {
   text-align: center;
   transform: translateX(-50%);
   cursor: pointer;
+  z-index: 1;
+  transition: transform 0.15s ease, z-index 0.15s;
+}
+
+.timeline-tick:hover {
+  transform: scale(1.05);
+  z-index: 10;
 }
 
 .timeline-tick .tick-line {
-  width: 2px;
+  width: 3px;
   margin: 0 auto;
   background-color: #333;
 }
@@ -640,6 +646,11 @@ body.dark .dropdown-item:hover {
 
 .timeline-tick.subevent .tick-line {
   height: 25px;
+}
+
+.timeline-tick.active .tick-line {
+  background-color: #facc15;
+  height: 75px;
 }
 
 /* Tick Labels */
@@ -653,6 +664,30 @@ body.dark .dropdown-item:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: opacity 0.15s ease;
+}
+
+.timeline-tick.event .tick-label {
+  top: 85px;
+}
+.timeline-tick.subevent .tick-label {
+  top: 70px;
+}
+.timeline-tick.active .tick-label {
+  top: 100px;
+}
+
+.timeline-tick:hover .tick-label {
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 2px 6px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.timeline-tick.active .tick-label {
+  font-weight: bold;
+  color: #facc15;
 }
 
 body.dark .timeline-input input {
@@ -673,8 +708,16 @@ body.dark .timeline-tick .tick-line {
   background-color: #f3f4f6;
 }
 
-body.dark .timeline-tick .tick-label {
-  color: #d1d5db;
+body.dark .timeline-tick.active .tick-line {
+  background-color: #facc15;
+}
+
+body.dark .timeline-tick.active .tick-label {
+  color: #facc15;
+}
+
+body.dark .timeline-tick:hover .tick-label {
+  background: rgba(139, 139, 139, 0.85);
 }
 
 .popup-overlay {
@@ -708,6 +751,10 @@ body.dark .timeline-tick .tick-label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
+}
+
+.popup input {
+  margin-bottom: 0.75rem;
 }
 
 .popup input[type="text"],
