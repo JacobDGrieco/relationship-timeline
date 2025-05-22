@@ -42,6 +42,9 @@ export default function TimelineRelationshipApp() {
   const [edgePopupPosition, setEdgePopupPosition] = useState({ x: 0, y: 0 });
   const [editingEdgeId, setEditingEdgeId] = useState(null);
   const [selectedSnapshotIndex, setSelectedSnapshotIndex] = useState(null);
+  const [showTickPopup, setShowTickPopup] = useState(false);
+  const [tickPopupPosition, setTickPopupPosition] = useState({ x: 0, y: 0 });
+  const [selectedTickIndex, setSelectedTickIndex] = useState(null);
   const [timelineStartDate, setTimelineStartDate] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
@@ -403,6 +406,14 @@ export default function TimelineRelationshipApp() {
   }, [selectedNode]);
 
   useEffect(() => {
+  const closePopup = () => setShowTickPopup(false);
+  if (showTickPopup) {
+    window.addEventListener('click', closePopup);
+    return () => window.removeEventListener('click', closePopup);
+  }
+}, [showTickPopup]);
+
+  useEffect(() => {
     const processedNodes = graphData.nodes.map(node => {
       if (node.image) {
         return { ...node, shape: 'circularImage' };
@@ -749,37 +760,47 @@ export default function TimelineRelationshipApp() {
 
     const stackMap = {};
     return timelineEntries.map((entry, idx) => {
-    const entryTime = new Date(entry.timestamp).getTime();
-    const leftPx = ((entryTime - startTime) / range) * (fullWidth - 100) + 25;
-    const stackKey = entry.timestamp;
-    const verticalOffset = (stackMap[stackKey] || 0) * 20;
-    stackMap[stackKey] = (stackMap[stackKey] || 0) + 1;
-    const inView = entryTime >= startTime && entryTime <= stopTime;
+      const entryTime = new Date(entry.timestamp).getTime();
+      const leftPx = ((entryTime - startTime) / range) * (fullWidth - 100) + 25;
+      const stackKey = entry.timestamp;
+      const verticalOffset = (stackMap[stackKey] || 0) * 20;
+      stackMap[stackKey] = (stackMap[stackKey] || 0) + 1;
+      const inView = entryTime >= startTime && entryTime <= stopTime;
+
+      const handleClick = () => {
+        if (lastActiveTickRef.current !== null) {
+          const lastActive = document.querySelector(`.timeline-tick.active`);
+          if (lastActive) lastActive.classList.remove('active');
+        }
+
+        const currentTick = document.querySelectorAll('.timeline-tick')[idx];
+        if (currentTick) currentTick.classList.add('active');
+        lastActiveTickRef.current = idx;
+
+        const snapshot = entry.snapshot;
+        setGraphData(snapshot.graphData);
+        setNodeDetails(snapshot.nodeDetails);
+        setSelectedSnapshotIndex(idx);
+        nodesRef.current.clear();
+        nodesRef.current.add(snapshot.graphData.nodes);
+        networkRef.current.body.data.edges.clear();
+        networkRef.current.body.data.edges.add(snapshot.graphData.edges);
+      };
+
+      const handleContextMenu = (e) => {
+        e.preventDefault();
+        setSelectedTickIndex(idx);
+        setTickPopupPosition({ x: e.clientX, y: e.clientY });
+        setShowTickPopup(true);
+      };
 
       return (
         <div
           key={idx}
           className={`timeline-tick ${entry.type}`}
           style={{ left: `${leftPx}px`, top: `${verticalOffset}px`, opacity: inView ? 1 : 0.15, pointerEvents: inView ? 'auto' : 'none' }}
-          onClick={() => {
-            if (lastActiveTickRef.current !== null) {
-              const lastActive = document.querySelector(`.timeline-tick.active`);
-              if (lastActive) lastActive.classList.remove('active');
-            }
-
-            const currentTick = document.querySelectorAll('.timeline-tick')[idx];
-            if (currentTick) currentTick.classList.add('active');
-            lastActiveTickRef.current = idx;
-
-            const snapshot = entry.snapshot;
-            setGraphData(snapshot.graphData);
-            setNodeDetails(snapshot.nodeDetails);
-            setSelectedSnapshotIndex(idx);
-            nodesRef.current.clear();
-            nodesRef.current.add(snapshot.graphData.nodes);
-            networkRef.current.body.data.edges.clear();
-            networkRef.current.body.data.edges.add(snapshot.graphData.edges);
-          }}>
+          onClick={handleClick}
+          onContextMenu={handleContextMenu}>
           <div className="tick-line" />
           <div className="tick-label">{entry.text}</div>
         </div>
@@ -850,29 +871,6 @@ export default function TimelineRelationshipApp() {
           <div
             className="timeline-track"
             ref={timelineTrackRef}
-            onWheel={(e) => {
-              e.preventDefault();
-
-              if (e.altKey) {
-                const direction = e.deltaY > 0 ? -1 : 1;
-                const scaleFactor = 1 + direction * 0.1;
-
-                const container = e.currentTarget;
-                const rect = container.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left + container.scrollLeft;
-
-                const newScale = Math.min(0.2, Math.max(0.005, zoomScale * scaleFactor));
-                const timeAtCursor = mouseX / zoomScale;
-                const newScrollLeft = timeAtCursor * newScale - (e.clientX - rect.left);
-
-                setZoomScale(newScale);
-                setTimeout(() => {
-                  container.scrollLeft = newScrollLeft;
-                }, 0);
-              } else {
-                e.currentTarget.scrollLeft += e.deltaY;
-              }
-            }}
           >
             <TimelineRuler
               baseTime={baseTime}
@@ -1045,6 +1043,31 @@ export default function TimelineRelationshipApp() {
               }}>Add Entry</button>
             </div>
           </div>
+        </div>
+      )}
+      {showTickPopup && (
+        <div
+          className="tick-popup"
+          style={{
+            position: 'absolute',
+            top: tickPopupPosition.y,
+            left: tickPopupPosition.x,
+            borderRadius: '4px',
+            zIndex: 20
+          }}
+        >
+          <button
+            onClick={() => {
+              const updated = [...timelineEntries];
+              updated.splice(selectedTickIndex, 1);
+              setTimelineEntries(updated);
+              setShowTickPopup(false);
+              if (selectedSnapshotIndex === selectedTickIndex) setSelectedSnapshotIndex(null);
+            }}
+            style={{ marginRight: '1rem' }}
+          >
+            Delete
+          </button>
         </div>
       )}
     </div>
