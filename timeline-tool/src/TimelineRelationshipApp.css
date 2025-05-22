@@ -608,7 +608,7 @@ body.dark .dropdown-item:hover {
 .timeline-track {
   position: relative;
   height: 100px;
-  width: 100%;
+  width: 1100%;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
@@ -653,13 +653,6 @@ body.dark .dropdown-item:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.timeline-track,
-.timeline-ruler {
-  box-sizing: border-box;
-  overflow-x: auto;
-  overflow-y: hidden;
 }
 
 body.dark .timeline-input input {

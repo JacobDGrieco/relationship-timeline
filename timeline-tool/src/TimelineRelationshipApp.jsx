@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 import JSZip from 'jszip';
@@ -18,7 +18,7 @@ export default function TimelineRelationshipApp() {
   const [entryType, setEntryType] = useState("subevent");
   const [entryDate, setEntryDate] = useState("");
   const [entryTime, setEntryTime] = useState("");
-  const [zoomScale, setZoomScale] = useState(0.02);
+  const [zoomScale, setZoomScale] = useState(0);
   const [graphMounted, setGraphMounted] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [selectedNode, setSelectedNode] = useState(null);
@@ -44,6 +44,8 @@ export default function TimelineRelationshipApp() {
   const [edgePopupPosition, setEdgePopupPosition] = useState({ x: 0, y: 0 });
   const [editingEdgeId, setEditingEdgeId] = useState(null);
   const [selectedSnapshotIndex, setSelectedSnapshotIndex] = useState(null);
+  const [timelineStartDate, setTimelineStartDate] = useState("");
+  const [timelineEndDate, setTimelineEndDate] = useState("");
 
   const containerRef = useRef();
   const networkRef = useRef();
@@ -64,7 +66,6 @@ export default function TimelineRelationshipApp() {
       </div>
     );
   };
-
 
   const renderNodeDetailForm = () => {
     if (!selectedNode) return null;
@@ -376,7 +377,6 @@ export default function TimelineRelationshipApp() {
                 ))}
               </div>
             )}
-
             <div className="tag-container">
               {currentRoles.map((val) => (
                 <span className="tag cursor-pointer" key={val} onClick={() =>
@@ -390,6 +390,13 @@ export default function TimelineRelationshipApp() {
     );
   };
 
+
+  useEffect(() => {
+    if (selectedNode && networkRef.current) {
+      networkRef.current.selectNodes([selectedNode]);
+    }
+  }, [selectedNode]);
+
   useEffect(() => {
     const processedNodes = graphData.nodes.map(node => {
       if (node.image) {
@@ -397,7 +404,6 @@ export default function TimelineRelationshipApp() {
       }
       return { ...node, shape: 'dot' };
     });
-
 
     const nodes = new DataSet(processedNodes);
     const edges = new DataSet(graphData.edges);
@@ -713,23 +719,51 @@ export default function TimelineRelationshipApp() {
     URL.revokeObjectURL(url);
   };
 
-  const baseTime = timelineEntries.length
-    ? new Date(timelineEntries[0].timestamp).getTime()
-    : Date.now();
+  const baseTime = timelineStartDate
+    ? new Date(timelineStartDate).getTime()
+    : (timelineEntries.length ? new Date(timelineEntries[0].timestamp).getTime() : Date.now());
 
-  const endTime = timelineEntries.length
-    ? new Date(timelineEntries[timelineEntries.length - 1].timestamp).getTime()
-    : baseTime + 1;
+  const endTime = timelineEndDate
+    ? new Date(timelineEndDate).getTime()
+    : (timelineEntries.length ? new Date(timelineEntries[timelineEntries.length - 1].timestamp).getTime() : baseTime + 1);
 
   const rangeMs = endTime - baseTime || 1;
+  const fullWidth = timelineTrackRef.current?.offsetWidth || 1000;
 
-  let fullWidth = 2000;
-  if (timelineEntries.length >= 2) {
-    const baseTime = new Date(timelineEntries[0].timestamp).getTime();
-    const endTime = new Date(timelineEntries[timelineEntries.length - 1].timestamp).getTime();
-    const rangeMs = endTime - baseTime;
-    fullWidth = Math.max(rangeMs * zoomScale + 200, 1000);
-  }
+  const timelineFrozen = showTimelinePopup || showAddPerson || showAddConnection || showEdgePopup;
+  const timelineTicks = useMemo(() => {
+    if (timelineFrozen) return null;
+
+    const startTime = new Date(new Date(timelineStartDate).setHours(0, 0, 0, 0)).getTime();
+    const stopTime = new Date(new Date(timelineEndDate).setHours(23, 59, 59, 999)).getTime();
+    const range = stopTime - startTime || 1;
+
+    return timelineEntries.map((entry, idx) => {
+      const entryTime = new Date(entry.timestamp).getTime();
+      const leftPx = ((entryTime - startTime) / range) * (fullWidth - 100) + 25;
+      const inView = entryTime >= startTime && entryTime <= stopTime;
+
+      return (
+        <div
+          key={idx}
+          className={`timeline-tick ${entry.type}`}
+          style={{ left: `${leftPx}px`, opacity: inView ? 1 : 0.15, pointerEvents: inView ? 'auto' : 'none' }}
+          onClick={() => {
+            const snapshot = entry.snapshot;
+            setGraphData(snapshot.graphData);
+            setNodeDetails(snapshot.nodeDetails);
+            setSelectedSnapshotIndex(idx);
+            nodesRef.current.clear();
+            nodesRef.current.add(snapshot.graphData.nodes);
+            networkRef.current.body.data.edges.clear();
+            networkRef.current.body.data.edges.add(snapshot.graphData.edges);
+          }}>
+          <div className="tick-line" />
+          <div className="tick-label">{entry.text}</div>
+        </div>
+      );
+    });
+  }, [timelineEntries, timelineStartDate, timelineEndDate, fullWidth, timelineFrozen]);
 
   return (
     <div className="app-container">
@@ -767,34 +801,33 @@ export default function TimelineRelationshipApp() {
           </div>
         </div>
         <div className="bottom-section">
-          <div className="timeline-input">
-            <button onClick={() => setShowTimelinePopup(true)}>Add Entry</button>
-
-            <button
-              className={`overwrite-button ${selectedSnapshotIndex === null ? 'disabled' : ''}`}
-              disabled={selectedSnapshotIndex === null}
-              onClick={() => {
-                if (selectedSnapshotIndex === null) return;
-
-                const updatedSnapshot = {
-                  graphData: JSON.parse(JSON.stringify(graphData)),
-                  nodeDetails: JSON.parse(JSON.stringify(nodeDetails)),
-                };
-
-                const updatedSnapshots = [...snapshots];
-                updatedSnapshots[selectedSnapshotIndex] = updatedSnapshot;
-                setSnapshots(updatedSnapshots);
-
-                alert("Snapshot updated successfully.");
+          <div className="timeline-input" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button onClick={() => setShowTimelinePopup(true)}>Add Entry</button>
+              <button onClick={() => {
+                if (selectedSnapshotIndex !== null && timelineEntries[selectedSnapshotIndex]) {
+                  const updated = [...timelineEntries];
+                  updated[selectedSnapshotIndex].snapshot = {
+                    graphData: {
+                      nodes: networkRef.current.body.data.nodes.get(),
+                      edges: networkRef.current.body.data.edges.get(),
+                    },
+                    nodeDetails: JSON.parse(JSON.stringify(nodeDetails))
+                  };
+                  setTimelineEntries(updated);
+                }
               }}>Update Snapshot</button>
-            <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>
-              Zoom: {Math.round(zoomScale * 100000)} px/sec
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <label>Start Date</label>
+              <input type="date" value={timelineStartDate} onChange={e => setTimelineStartDate(e.target.value)} />
+              <label>End Date</label>
+              <input type="date" value={timelineEndDate} onChange={e => setTimelineEndDate(e.target.value)} />
             </div>
           </div>
           <div
             className="timeline-track"
             ref={timelineTrackRef}
-            style={{ width: `${fullWidth}px` }}
             onWheel={(e) => {
               e.preventDefault();
 
@@ -820,36 +853,11 @@ export default function TimelineRelationshipApp() {
             }}
           >
             <TimelineRuler
-              entries={timelineEntries}
+              baseTime={baseTime}
+              endTime={endTime}
               zoomScale={zoomScale}
-              containerRef={timelineTrackRef}
             />
-            {timelineEntries.map((entry, idx) => {
-              const entryTime = new Date(entry.timestamp).getTime();
-              const percent = Math.min(((entryTime - baseTime) / rangeMs) * 100, 100);
-              return (
-                <div
-                  key={idx}
-                  className={`timeline-tick ${entry.type}`}
-                  style={{ left: `${percent * 24.75}px` }}
-                  onClick={() => {
-                    const snapshot = entry.snapshot;
-
-                    setGraphData(snapshot.graphData);
-                    setNodeDetails(snapshot.nodeDetails);
-                    setSelectedSnapshotIndex(idx);
-
-                    nodesRef.current.clear();
-                    nodesRef.current.add(snapshot.graphData.nodes);
-                    networkRef.current.body.data.edges.clear();
-                    networkRef.current.body.data.edges.add(snapshot.graphData.edges);
-                  }}
-                >
-                  <div className="tick-line" />
-                  <div className="tick-label">{entry.text}</div>
-                </div>
-              );
-            })}
+            {timelineTicks}
           </div>
         </div>
       </div>
@@ -979,7 +987,10 @@ export default function TimelineRelationshipApp() {
                 const timestamp = new Date(`${entryDate}T${entryTime || "00:00"}`).toISOString();
 
                 const snapshot = {
-                  graphData: JSON.parse(JSON.stringify(graphData)),
+                  graphData: {
+                    nodes: networkRef.current.body.data.nodes.get(),
+                    edges: JSON.parse(JSON.stringify(graphData.edges))
+                  },
                   nodeDetails: JSON.parse(JSON.stringify(nodeDetails))
                 };
 
@@ -1002,25 +1013,15 @@ export default function TimelineRelationshipApp() {
   );
 }
 
-const TimelineRuler = ({ entries, zoomScale, containerRef }) => {
-  if (!entries.length || !containerRef.current) return null;
+const TimelineRuler = ({ baseTime, endTime, zoomScale }) => {
+  if (!baseTime || !endTime) return null;
 
-  const baseTime = entries.length
-    ? new Date(entries[0].timestamp).getTime()
-    : Date.now();
-  const endTime = entries.length
-    ? new Date(entries[entries.length - 1].timestamp).getTime()
-    : baseTime + 1;
-  const rangeMs = endTime - baseTime || 1;
-
-  const fullWidth = rangeMs * zoomScale + 200;
-  const tickInterval = 3600000;
+  const tickInterval = 3600000; // 1 hour
   const ticks = [];
 
   for (let t = baseTime; t <= endTime + tickInterval; t += tickInterval) {
     const left = Math.round((t - baseTime) * zoomScale);
-    const label = new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    ticks.push({ left, label });
+    ticks.push(left);
   }
 
   return (
@@ -1028,6 +1029,7 @@ const TimelineRuler = ({ entries, zoomScale, containerRef }) => {
       {ticks.map((tick, idx) => (
         <div key={idx} className="ruler-tick" style={{ left: `${tick.left}px` }}>
           <div className="ruler-line" />
+          <div className="ruler-label">{tick.label}</div>
         </div>
       ))}
     </div>
