@@ -61,6 +61,7 @@ export default function TimelineRelationshipApp() {
   const nodesRef = useRef(null);
   const timelineTrackRef = useRef(null);
   const lastActiveTickRef = useRef(null);
+  const [hoveredTick, setHoveredTick] = useState(null);
 
   const renderDropdownSuggestions = (filter, options, onSelect, show) => {
     const matches = options.filter(o => o.toLowerCase().includes(filter.toLowerCase()));
@@ -406,12 +407,12 @@ export default function TimelineRelationshipApp() {
   }, [selectedNode]);
 
   useEffect(() => {
-  const closePopup = () => setShowTickPopup(false);
-  if (showTickPopup) {
-    window.addEventListener('click', closePopup);
-    return () => window.removeEventListener('click', closePopup);
-  }
-}, [showTickPopup]);
+    const closePopup = () => setShowTickPopup(false);
+    if (showTickPopup) {
+      window.addEventListener('click', closePopup);
+      return () => window.removeEventListener('click', closePopup);
+    }
+  }, [showTickPopup]);
 
   useEffect(() => {
     const processedNodes = graphData.nodes.map(node => {
@@ -800,7 +801,22 @@ export default function TimelineRelationshipApp() {
           className={`timeline-tick ${entry.type}`}
           style={{ left: `${leftPx}px`, top: `${verticalOffset}px`, opacity: inView ? 1 : 0.15, pointerEvents: inView ? 'auto' : 'none' }}
           onClick={handleClick}
-          onContextMenu={handleContextMenu}>
+          onContextMenu={handleContextMenu}
+          onMouseEnter={() => {
+            const entryDate = new Date(entry.timestamp);
+            setHoveredTick({
+              left: leftPx,
+              time: entryDate.toLocaleString([], {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            });
+          }}
+          onMouseLeave={() => setHoveredTick(null)}
+        >
           <div className="tick-line" />
           <div className="tick-label">{entry.text}</div>
         </div>
@@ -868,16 +884,20 @@ export default function TimelineRelationshipApp() {
               <input type="date" value={timelineEndDate} onChange={e => setTimelineEndDate(e.target.value)} />
             </div>
           </div>
-          <div
-            className="timeline-track"
-            ref={timelineTrackRef}
-          >
-            <TimelineRuler
-              baseTime={baseTime}
-              endTime={endTime}
-              zoomScale={zoomScale}
-            />
-            {timelineTicks}
+          <div className="timeline-render-area" style={{ position: 'relative', height: '100%' }}>
+            {hoveredTick && (
+              <div className="hovered-tick-label" style={{ left: `${hoveredTick.left}px` }}>
+                {hoveredTick.time}
+              </div>
+            )}
+            <div className="timeline-track" ref={timelineTrackRef}>
+              <TimelineRuler
+                baseTime={baseTime}
+                endTime={endTime}
+                zoomScale={zoomScale}
+              />
+              {timelineTicks}
+            </div>
           </div>
         </div>
       </div>
@@ -900,7 +920,6 @@ export default function TimelineRelationshipApp() {
                 </option>
               ))}
             </select>
-
             <div className="actions">
               <button className="cancel" onClick={() => setShowAddPerson(false)}>Cancel</button>
               <button className="confirm" onClick={handleAddPerson}>Add</button>
