@@ -398,13 +398,20 @@ export default function TimelineRelationshipApp() {
       </div>
     );
   };
-
-
   useEffect(() => {
     if (selectedNode && networkRef.current) {
       networkRef.current.selectNodes([selectedNode]);
     }
   }, [selectedNode]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      const disableRightClick = (e) => e.preventDefault();
+      container.addEventListener("contextmenu", disableRightClick);
+      return () => container.removeEventListener("contextmenu", disableRightClick);
+    }
+  }, []);
 
   useEffect(() => {
     const closePopup = () => setShowTickPopup(false);
@@ -449,8 +456,8 @@ export default function TimelineRelationshipApp() {
       },
       nodes: {
         shape: "dot",
-        size: 40,
-        font: { size: 14, color: "#333" },
+        size: 30,
+        font: { size: 10, color: "#333" },
         borderWidth: 2,
       },
       edges: {
@@ -460,35 +467,56 @@ export default function TimelineRelationshipApp() {
           to: { enabled: true, scaleFactor: 1 }
         },
         font: { align: "top" },
+      },
+      interaction: {
+        multiselect: true,
+        navigationButtons: true,
+        selectConnectedEdges: false
       }
     };
 
-
     if (containerRef.current) {
       networkRef.current = new Network(containerRef.current, data, options);
+
+      const handleRightClick = (e) => {
+        e.preventDefault();
+        const rect = containerRef.current.getBoundingClientRect();
+        const pointer = {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        };
+
+        const edgeId = networkRef.current.getEdgeAt(pointer);
+        if (edgeId) {
+          setSelectedEdgeId(edgeId);
+          setShowEdgePopup(true);
+          setEdgePopupPosition({ x: e.clientX, y: e.clientY });
+        } else {
+          setShowEdgePopup(false);
+          setSelectedEdgeId(null);
+        }
+      };
+
+      containerRef.current.addEventListener("contextmenu", handleRightClick);
       networkRef.current.on("click", function (params) {
         if (params.nodes.length === 1) {
           const nodeId = params.nodes[0];
           setSelectedNode(nodeId);
           setIsDetailsVisible(true);
           setJustClosedRecently(true);
-        }
-      });
-      networkRef.current.on("click", function (params) {
-        if (params.edges.length === 1) {
-          const edgeId = params.edges[0];
-          const edge = networkRef.current.body.data.edges.get(edgeId);
-
-          const pointer = params.pointer.DOM;
-          setSelectedEdgeId(edgeId);
-          setShowEdgePopup(true);
-          setEdgePopupPosition({ x: pointer.x, y: pointer.y });
         } else {
           setShowEdgePopup(false);
           setSelectedEdgeId(null);
+          setIsDetailsVisible(false);
+          setSelectedNode(null);
         }
       });
+
+      return () => {
+        containerRef.current.removeEventListener("contextmenu", handleRightClick);
+      };
     }
+
   }, [graphData]);
 
   const updateGraphData = (newData) => {
@@ -819,7 +847,7 @@ export default function TimelineRelationshipApp() {
         >
           <div className="tick-line" />
           <div className="tick-label">
-              {entry.text}
+            {entry.text}
           </div>
         </div>
       );
