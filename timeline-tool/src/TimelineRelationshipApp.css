@@ -234,6 +234,12 @@ body.dark .timeline-event:hover {
   min-height: 0;
 }
 
+@media (max-width: 1920px) {
+  .top-section {
+    flex: 0 0 65%;
+  }
+}
+
 .network-area {
   width: 100%;
   height: 100%;
@@ -670,9 +676,11 @@ body.dark .dropdown-item:hover {
 .timeline-tick.event .tick-label {
   top: 85px;
 }
+
 .timeline-tick.subevent .tick-label {
   top: 70px;
 }
+
 .timeline-tick.active .tick-label {
   top: 100px;
 }
