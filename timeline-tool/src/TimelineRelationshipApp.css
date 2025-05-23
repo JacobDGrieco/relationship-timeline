@@ -668,14 +668,14 @@ body.dark .dropdown-item:hover {
 .timeline-tick .tick-label {
   margin-top: 6px;
   font-size: 0.7rem;
-  max-width: 100px;
+  max-width: 75px;
   transform: translateX(-50%);
   position: absolute;
-  top: 55px;
-  white-space: nowrap;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
-  transition: opacity 0.15s ease;
+  top: 55px;
+  transition: max-width 0s ease, background 0s ease;
 }
 
 .timeline-tick.event .tick-label {
@@ -691,11 +691,13 @@ body.dark .dropdown-item:hover {
 }
 
 .timeline-tick:hover .tick-label {
+  max-width: 1000px;
   font-weight: bold;
   background: rgba(255, 255, 255, 0.85);
   padding: 2px 6px;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);  
+  z-index: 10;
 }
 
 .timeline-tick.active .tick-label {

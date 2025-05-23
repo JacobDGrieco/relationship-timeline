@@ -818,7 +818,9 @@ export default function TimelineRelationshipApp() {
           onMouseLeave={() => setHoveredTick(null)}
         >
           <div className="tick-line" />
-          <div className="tick-label">{entry.text}</div>
+          <div className="tick-label">
+              {entry.text}
+          </div>
         </div>
       );
     });
