@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 // Component Imports
 import NetworkGraph from './NetworkGraph.jsx';
 import TimelineTrack from './TimelineTrack.jsx';
-import TimelineRuler from './TimelineRuler.jsx';
 import NodeDetailsPanel from './NodeDetailsPanel.jsx';
 
 // Popup Imports
@@ -15,8 +14,9 @@ import ConnectionContextMenu from './popups/ConnectionContextMenu.jsx';
 import TickContextMenu from './popups/TickContextMenu.jsx';
 
 // Helper Imports
+import ThemeToggleSlider from '../utils/themeHelper.jsx';
 import { handleUpdateSnapshot } from '../utils/timelineHelpers.jsx';
-import { saveProject, loadProject } from '../utils/saveload';
+import { saveProject, loadProject } from '../utils/saveload.jsx';
 
 // Style Imports
 import '../styles/TimelineRelationshipApp.css';
@@ -140,17 +140,7 @@ export default function TimelineRelationshipApp() {
       <div className="header">
         <div className="header-left">
           <input type="text" placeholder="Project Name" value={projectName} onChange={(e) => setProjectName(e.target.value)} />
-          <div className="theme-toggle">
-            <label className="toggle-wrapper">
-              <input
-                type="checkbox"
-                onChange={(e) => {
-                  document.body.classList.toggle("dark", e.target.checked);
-                }}
-              />
-              <span className="slider-thumb"></span>
-            </label>
-          </div>
+          <ThemeToggleSlider />
         </div>
         <div className="header-center">
           <button onClick={() => setShowAddPerson(true)} disabled={!graphMounted}>Add Node</button>
