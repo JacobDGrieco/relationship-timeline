@@ -1,0 +1,13 @@
+@import url('./regular-mode/page.css');
+@import url('./regular-mode/header.css');
+@import url('./regular-mode/theme-toggle.css');
+@import url('./regular-mode/network-area.css');
+@import url('./regular-mode/details-panel.css');
+@import url('./regular-mode/timeline.css');
+@import url('./regular-mode/popup.css');
+@import url('./regular-mode/edge-popup.css');
+
+@import url('./dark-mode/page-dark.css');
+@import url('./dark-mode/details-panel-dark.css');
+@import url('./dark-mode/timeline-dark.css');
+@import url('./dark-mode/popup-dark.css');
