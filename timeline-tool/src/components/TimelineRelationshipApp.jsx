@@ -227,6 +227,7 @@ export default function TimelineRelationshipApp() {
       )}
       {showAddConnection && (
         <AddConnectionPopup
+          nodeDetails={nodeDetails}
           connectionSource={connectionSource}
           setConnectionSource={setConnectionSource}
           connectionTarget={connectionTarget}
@@ -236,9 +237,14 @@ export default function TimelineRelationshipApp() {
           connectionDirection={connectionDirection}
           setConnectionDirection={setConnectionDirection}
           setShowAddConnection={setShowAddConnection}
-          handleAddConnection={handleAddConnection}
+          editingEdgeId={editingEdgeId}
+          setEditingEdgeId={setEditingEdgeId}
+          setGraphData={setGraphData}
+          networkRef={networkRef}
         />
       )}
+
+
       {showEdgePopup && selectedEdgeId && (
         <ConnectionContextMenu
           edgePopupPosition={edgePopupPosition}

@@ -1,14 +1,20 @@
+import { handleAddConnection } from "../../utils/graphHelpers"
+
 export default function AddConnectionPopup({
-  connectionSource,
-  setConnectionSource,
-  connectionTarget,
-  setConnectionTarget,
-  connectionLabel,
-  setConnectionLabel,
-  connectionDirection,
-  setConnectionDirection,
-  setShowAddConnection,
-  handleAddConnection
+    nodeDetails,
+    connectionSource,
+    setConnectionSource,
+    connectionTarget,
+    setConnectionTarget,
+    connectionLabel,
+    setConnectionLabel,
+    connectionDirection,
+    setConnectionDirection,
+    editingEdgeId,
+    setEditingEdgeId,
+    setShowAddConnection,
+    setGraphData,
+    networkRef
 }) {
     return (
         <div className="popup-overlay">
@@ -51,7 +57,22 @@ export default function AddConnectionPopup({
                 </div>
                 <div className="actions">
                     <button className="cancel" onClick={() => setShowAddConnection(false)}>Cancel</button>
-                    <button className="confirm" onClick={handleAddConnection}>Add</button>
+                    <button className="confirm" onClick={() => handleAddConnection({
+                        nodeDetails,
+                        connectionSource,
+                        connectionTarget,
+                        connectionLabel,
+                        connectionDirection,
+                        editingEdgeId,
+                        setEditingEdgeId,
+                        setConnectionSource,
+                        setConnectionTarget,
+                        setConnectionLabel,
+                        setConnectionDirection,
+                        setShowAddConnection,
+                        setGraphData,
+                        networkRef
+                    })}>Add</button>
                 </div>
             </div>
         </div>

@@ -1,4 +1,19 @@
-export function handleAddConnection() {
+export function handleAddConnection({
+    nodeDetails,
+    connectionSource,
+    connectionTarget,
+    connectionLabel,
+    connectionDirection,
+    editingEdgeId,
+    setEditingEdgeId,
+    setConnectionSource,
+    setConnectionTarget,
+    setConnectionLabel,
+    setConnectionDirection,
+    setShowAddConnection,
+    setGraphData,
+    networkRef
+}) {
     const allNodeDetails = Object.entries(nodeDetails);
 
     const sourceEntry = allNodeDetails.find(([, data]) => data.name === connectionSource);
