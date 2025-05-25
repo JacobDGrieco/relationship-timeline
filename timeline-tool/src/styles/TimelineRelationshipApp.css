@@ -718,9 +718,6 @@ body.dark .dropdown-item:hover {
   white-space: nowrap;
   font-weight: 500;
   color: #333;
-  /*
-  transform: translateX(-50%);
-    */
 }
 
 body.dark .timeline-input input {
