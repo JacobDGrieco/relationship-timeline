@@ -1,27 +1,52 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loadProject } from '../utils/saveloadToCloud.jsx';
+import { useProject } from '../../relatime/utils/projectContext.jsx';
 import '../styles/regular-mode/AccountProjects.css';
 
 export default function AccountProjects() {
+  const {
+    setProjectName,
+    setGraphData,
+    setNodeDetails,
+    setTimelineEntries,
+    setTimelineStartDate,
+    setTimelineEndDate,
+    setSnapshots
+  } = useProject();
+
   const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProjects = async () => {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        console.warn("No token found in localStorage.");
+        return;
+      }
 
-      const res = await fetch('http://localhost:4000/api/project/load', {
-        headers: {
-          Authorization: `Bearer ${token}`
+      try {
+        const res = await fetch('http://localhost:4000/api/project/load', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("Failed to fetch projects:", errorText);
+          return;
         }
-      });
-      const data = await res.json();
-      setProjects(data);
+
+        const data = await res.json();
+        setProjects(data);
+      } catch (err) {
+        console.error("Error fetching projects:", err);
+      }
     };
 
     fetchProjects();
   }, []);
+
 
   const handleDelete = async (projectId) => {
     const token = localStorage.getItem('token');
@@ -34,9 +59,23 @@ export default function AccountProjects() {
     setProjects(projects.filter(p => p._id !== projectId));
   };
 
-  const handleLoad = (project) => {
-    localStorage.setItem('loadedProject', JSON.stringify(project));
-    navigate('/');
+  const handleLoad = async (projectId) => {
+    try {
+      const token = localStorage.getItem('token'); // or useContext(AuthContext)
+      const data = await loadProject(projectId, token);
+
+      setProjectName(data.projectName);
+      setGraphData(data.graphData);
+      setNodeDetails(data.nodeDetails);
+      setTimelineEntries(data.timelineEntries);
+      setTimelineStartDate(data.timelineStartDate);
+      setTimelineEndDate(data.timelineEndDate);
+      setSnapshots(data.snapshots);
+
+      navigate('/');
+    } catch (err) {
+      console.error("Failed to load project:", err);
+    }
   };
 
   return (
@@ -59,7 +98,7 @@ export default function AccountProjects() {
                 <td>{new Date(project.createdAt).toLocaleString()}</td>
                 <td>{new Date(project.updatedAt).toLocaleString()}</td>
                 <td>
-                  <button onClick={() => handleLoad(project)}>Load</button>
+                  <button onClick={() => handleLoad(project._id)}>Load</button>
                   <button onClick={() => handleDelete(project._id)}>Delete</button>
                 </td>
               </tr>
@@ -69,4 +108,4 @@ export default function AccountProjects() {
       </div>
     </div>
   );
-} 
+}

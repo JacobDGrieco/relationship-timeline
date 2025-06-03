@@ -5,21 +5,13 @@ import Project from '../models/Project.js';
 const router = express.Router();
 
 function authMiddleware(req, res, next) {
-  const authHeader = req.headers.authorization;
-  console.log('Auth header:', authHeader);
-
-  if (!authHeader) return res.status(401).json({ error: 'No token provided' });
-
-  const token = authHeader.split(' ')[1];
-  console.log('Token extracted:', token);
-
+  const token = req.headers.authorization?.split(' ')[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = decoded.id;
     next();
-  } catch (err) {
-    console.error('JWT error:', err);
-    return res.status(401).json({ error: 'Unauthorized' });
+  } catch {
+    res.status(401).json({ error: 'Unauthorized' });
   }
 }
 
@@ -47,10 +39,17 @@ router.post('/save', authMiddleware, async (req, res) => {
   }
 });
 
-
-router.get('/load', authMiddleware, async (req, res) => {
-  const projects = await Project.find({ userId: req.userId }).sort({ updatedAt: -1 });
-  res.json(projects);
+router.get('/load/:id', authMiddleware, async (req, res) => {
+  try {
+    console.log(`Fetching all projects for user ${req.userId}`);
+    const projects = await Project.find({ userId: req.userId }).sort({ updatedAt: -1 });
+    res.json(projects);
+  } catch (err) {
+    console.error("Error fetching projects:", err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
+
+
 
 export default router;

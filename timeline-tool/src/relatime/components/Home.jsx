@@ -1,9 +1,9 @@
 // React Imports
 import { useState, useRef, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
 
-// Account Import
+// Account Imports
 import AccountMenu from '../../accounts/components/AccountMenu.jsx';
+import { ProjectProvider } from '../utils/projectContext.jsx';
 
 // Component Imports
 import NetworkGraph from './NetworkGraph.jsx';
@@ -20,7 +20,7 @@ import TickContextMenu from './popups/TickContextMenu.jsx';
 // Helper Imports
 import ThemeToggleSlider from '../utils/themeHelper.jsx';
 import { handleUpdateSnapshot } from '../utils/timelineHelpers.jsx';
-import { saveProject } from '../utils/saveloadToCloud.jsx';
+import { saveProject } from '../../accounts/utils/saveloadToCloud.jsx';
 
 // Style Import
 import '../styles/master-style.css';
@@ -128,202 +128,212 @@ export default function Home() {
 
   return (
     <div className="app-container">
-      <NetworkGraph
-        graphData={graphData}
-        nodeDetails={nodeDetails}
-        containerRef={containerRef}
-        networkRef={networkRef}
-        nodesRef={nodesRef}
-        setGraphMounted={setGraphMounted}
-        setSelectedNode={setSelectedNode}
-        setSelectedEdgeId={setSelectedEdgeId}
-        setShowEdgePopup={setShowEdgePopup}
-        setEdgePopupPosition={setEdgePopupPosition}
-        setIsDetailsVisible={setIsDetailsVisible}
-        setJustClosedRecently={setJustClosedRecently}
-      />
-      <div className="header">
-        <div className="header-left">
-          <input type="text" placeholder="Project Name" value={projectName} onChange={(e) => setProjectName(e.target.value)} />
-          <button onClick={() => saveProject({
-            nodeDetails,
-            graphData,
-            timelineEntries,
-            timelineStartDate,
-            timelineEndDate,
-            snapshots,
-            projectName: projectName || 'Untitled Project'
-          })}>Save Project</button>
-        </div>
-        <div className="header-center">
-          <button onClick={() => setShowAddPerson(true)} disabled={!graphMounted}>Add Node</button>
-          <button className="header-button" onClick={() => setShowAddConnection(true)}>Add Connection</button>
-        </div>
-        <div className="header-right">
-          <ThemeToggleSlider />
-          <div>
-            <AccountMenu />
-          </div>
-        </div>
-      </div>
-      <div className="main-content">
-        <div className="top-section">
-          <div className="network-area">
-            <div id="network-container" ref={containerRef}></div>
-          </div>
-        </div>
-        <div className="bottom-section">
-          <div className="timeline-input" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button onClick={() => setShowTimelinePopup(true)}>Add Event</button>
-              <button onClick={() => handleUpdateSnapshot({
-                selectedSnapshotIndex,
-                timelineEntries,
-                setTimelineEntries,
-                networkRef,
-                nodeDetails
-              })}>Update Event</button>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <label>Start Date</label>
-              <input type="date" value={timelineStartDate} onChange={e => setTimelineStartDate(e.target.value)} />
-              <label>End Date</label>
-              <input type="date" value={timelineEndDate} onChange={e => setTimelineEndDate(e.target.value)} />
-            </div>
-          </div>
-          <div className="timeline-render-area" style={{ position: 'relative', height: '100%' }}>
-            {hoveredTick && (
-              <div className="hovered-tick-label" style={{ left: `${hoveredTick.left}px` }}>
-                {hoveredTick.time}
-              </div>
-            )}
-            <div className="timeline-track" ref={timelineTrackRef}>
-              <TimelineTrack
-                timelineEntries={timelineEntries}
-                timelineStartDate={timelineStartDate}
-                timelineEndDate={timelineEndDate}
-                setSelectedSnapshotIndex={(index) => selectedSnapshotIndex.current = index}
-                setGraphData={setGraphData}
-                setNodeDetails={setNodeDetails}
-                selectedTickIndex={selectedTickIndex}
-                setSelectedTickIndex={setSelectedTickIndex}
-                tickContextMenuPosition={tickContextMenuPosition}
-                setTickContextMenuPosition={setTickContextMenuPosition}
-                setShowTickContextMenu={setShowTickContextMenu}
-                setHoveredTick={setHoveredTick}
-                networkRef={networkRef}
-                nodesRef={nodesRef}
-                lastActiveTickRef={lastActiveTickRef}
-                timelineTrackRef={timelineTrackRef}
-                showTimelinePopup={showTimelinePopup}
-                showAddPerson={showAddPerson}
-                showAddConnection={showAddConnection}
-                showEdgePopup={showEdgePopup}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      {showAddPerson && (
-        <AddNodePopup
-          personName={personName}
-          setPersonName={setPersonName}
-          personSeries={personSeries}
-          setPersonSeries={setPersonSeries}
-          SERIES_OPTIONS={SERIES_OPTIONS}
-          nodesRef={nodesRef}
-          setGraphData={setGraphData}
-          setNodeDetails={setNodeDetails}
-          setConnectionLabel={setConnectionLabel}
-          setConnectionDirection={setConnectionDirection}
-          setShowAddPerson={setShowAddPerson}
-        />
-      )}
-      {showAddConnection && (
-        <AddConnectionPopup
-          nodeDetails={nodeDetails}
-          connectionSource={connectionSource}
-          setConnectionSource={setConnectionSource}
-          connectionTarget={connectionTarget}
-          setConnectionTarget={setConnectionTarget}
-          connectionLabel={connectionLabel}
-          setConnectionLabel={setConnectionLabel}
-          connectionDirection={connectionDirection}
-          setConnectionDirection={setConnectionDirection}
-          setShowAddConnection={setShowAddConnection}
-          editingEdgeId={editingEdgeId}
-          setEditingEdgeId={setEditingEdgeId}
-          setGraphData={setGraphData}
-          networkRef={networkRef}
-        />
-      )}
-
-
-      {showEdgePopup && selectedEdgeId && (
-        <ConnectionContextMenu
-          edgePopupPosition={edgePopupPosition}
-          networkRef={networkRef}
-          selectedEdgeId={selectedEdgeId}
-          setConnectionSource={setConnectionSource}
-          setConnectionTarget={setConnectionTarget}
-          setConnectionLabel={setConnectionLabel}
-          setConnectionDirection={setConnectionDirection}
-          setEditingEdgeId={setEditingEdgeId}
-          setShowAddConnection={setShowAddConnection}
-          setShowEdgePopup={setShowEdgePopup}
-          setGraphData={setGraphData}
-          setSelectedEdgeId={setSelectedEdgeId}
-          nodeDetails={nodeDetails}
-        />
-      )}
-      {(isDetailsVisible || justClosedRecently) ? (
-        <NodeDetailsPanel
-          setGraphData={setGraphData}
-          selectedNode={selectedNode}
-          nodeDetails={nodeDetails}
-          setNodeDetails={setNodeDetails}
-          networkRef={networkRef}
-          nodesRed={nodesRef}
-          setIsDetailsVisible={setIsDetailsVisible}
-          setJustClosedRecently={setJustClosedRecently}
-          isDetailsVisible={isDetailsVisible}
-          SERIES_OPTIONS={SERIES_OPTIONS}
-          STATUS_OPTIONS={STATUS_OPTIONS}
-          availableRoles={availableRoles}
-          setAvailableRoles={setAvailableRoles}
-          availableSecondarySeries={availableSecondarySeries}
-          setAvailableSecondarySeries={setAvailableSecondarySeries}
-        />
-      ) : null}
-      {showTimelinePopup && (
-        <AddTimelineEntryPopup
-          entryText={entryText}
-          setEntryText={setEntryText}
-          entryType={entryType}
-          setEntryType={setEntryType}
-          entryDate={entryDate}
-          setEntryDate={setEntryDate}
-          entryTime={entryTime}
-          setEntryTime={setEntryTime}
-          networkRef={networkRef}
+      <ProjectProvider value={{
+        projectName, setProjectName,
+        graphData, setGraphData,
+        nodeDetails, setNodeDetails,
+        timelineEntries, setTimelineEntries,
+        timelineStartDate, setTimelineStartDate,
+        timelineEndDate, setTimelineEndDate,
+        snapshots, setSnapshots
+      }}>
+        <NetworkGraph
           graphData={graphData}
           nodeDetails={nodeDetails}
-          setTimelineEntries={setTimelineEntries}
-          setSnapshots={setSnapshots}
-          setShowTimelinePopup={setShowTimelinePopup}
+          containerRef={containerRef}
+          networkRef={networkRef}
+          nodesRef={nodesRef}
+          setGraphMounted={setGraphMounted}
+          setSelectedNode={setSelectedNode}
+          setSelectedEdgeId={setSelectedEdgeId}
+          setShowEdgePopup={setShowEdgePopup}
+          setEdgePopupPosition={setEdgePopupPosition}
+          setIsDetailsVisible={setIsDetailsVisible}
+          setJustClosedRecently={setJustClosedRecently}
         />
-      )}
-      {showTickContextMenu && (
-        <TickContextMenu
-          tickContextMenuPosition={tickContextMenuPosition}
-          selectedTickIndex={selectedTickIndex}
-          setTimelineEntries={setTimelineEntries}
-          timelineEntries={timelineEntries}
-          setShowTickContextMenu={setShowTickContextMenu}
-          selectedSnapshotIndex={selectedSnapshotIndex}
-          setSelectedSnapshotIndex={setSelectedSnapshotIndex}
-        />
-      )}
+        <div className="header">
+          <div className="header-left">
+            <input type="text" placeholder="Project Name" value={projectName} onChange={(e) => setProjectName(e.target.value)} />
+            <button onClick={() => saveProject({
+              nodeDetails,
+              graphData,
+              timelineEntries,
+              timelineStartDate,
+              timelineEndDate,
+              snapshots,
+              projectName: projectName || 'Untitled Project'
+            })}>Save Project</button>
+          </div>
+          <div className="header-center">
+            <button onClick={() => setShowAddPerson(true)} disabled={!graphMounted}>Add Node</button>
+            <button className="header-button" onClick={() => setShowAddConnection(true)}>Add Connection</button>
+          </div>
+          <div className="header-right">
+            <ThemeToggleSlider />
+            <div>
+              <AccountMenu />
+            </div>
+          </div>
+        </div>
+        <div className="main-content">
+          <div className="top-section">
+            <div className="network-area">
+              <div id="network-container" ref={containerRef}></div>
+            </div>
+          </div>
+          <div className="bottom-section">
+            <div className="timeline-input" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button onClick={() => setShowTimelinePopup(true)}>Add Event</button>
+                <button onClick={() => handleUpdateSnapshot({
+                  selectedSnapshotIndex,
+                  timelineEntries,
+                  setTimelineEntries,
+                  networkRef,
+                  nodeDetails
+                })}>Update Event</button>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <label>Start Date</label>
+                <input type="date" value={timelineStartDate} onChange={e => setTimelineStartDate(e.target.value)} />
+                <label>End Date</label>
+                <input type="date" value={timelineEndDate} onChange={e => setTimelineEndDate(e.target.value)} />
+              </div>
+            </div>
+            <div className="timeline-render-area" style={{ position: 'relative', height: '100%' }}>
+              {hoveredTick && (
+                <div className="hovered-tick-label" style={{ left: `${hoveredTick.left}px` }}>
+                  {hoveredTick.time}
+                </div>
+              )}
+              <div className="timeline-track" ref={timelineTrackRef}>
+                <TimelineTrack
+                  timelineEntries={timelineEntries}
+                  timelineStartDate={timelineStartDate}
+                  timelineEndDate={timelineEndDate}
+                  setSelectedSnapshotIndex={(index) => selectedSnapshotIndex.current = index}
+                  setGraphData={setGraphData}
+                  setNodeDetails={setNodeDetails}
+                  selectedTickIndex={selectedTickIndex}
+                  setSelectedTickIndex={setSelectedTickIndex}
+                  tickContextMenuPosition={tickContextMenuPosition}
+                  setTickContextMenuPosition={setTickContextMenuPosition}
+                  setShowTickContextMenu={setShowTickContextMenu}
+                  setHoveredTick={setHoveredTick}
+                  networkRef={networkRef}
+                  nodesRef={nodesRef}
+                  lastActiveTickRef={lastActiveTickRef}
+                  timelineTrackRef={timelineTrackRef}
+                  showTimelinePopup={showTimelinePopup}
+                  showAddPerson={showAddPerson}
+                  showAddConnection={showAddConnection}
+                  showEdgePopup={showEdgePopup}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        {showAddPerson && (
+          <AddNodePopup
+            personName={personName}
+            setPersonName={setPersonName}
+            personSeries={personSeries}
+            setPersonSeries={setPersonSeries}
+            SERIES_OPTIONS={SERIES_OPTIONS}
+            nodesRef={nodesRef}
+            setGraphData={setGraphData}
+            setNodeDetails={setNodeDetails}
+            setConnectionLabel={setConnectionLabel}
+            setConnectionDirection={setConnectionDirection}
+            setShowAddPerson={setShowAddPerson}
+          />
+        )}
+        {showAddConnection && (
+          <AddConnectionPopup
+            nodeDetails={nodeDetails}
+            connectionSource={connectionSource}
+            setConnectionSource={setConnectionSource}
+            connectionTarget={connectionTarget}
+            setConnectionTarget={setConnectionTarget}
+            connectionLabel={connectionLabel}
+            setConnectionLabel={setConnectionLabel}
+            connectionDirection={connectionDirection}
+            setConnectionDirection={setConnectionDirection}
+            setShowAddConnection={setShowAddConnection}
+            editingEdgeId={editingEdgeId}
+            setEditingEdgeId={setEditingEdgeId}
+            setGraphData={setGraphData}
+            networkRef={networkRef}
+          />
+        )}
+
+
+        {showEdgePopup && selectedEdgeId && (
+          <ConnectionContextMenu
+            edgePopupPosition={edgePopupPosition}
+            networkRef={networkRef}
+            selectedEdgeId={selectedEdgeId}
+            setConnectionSource={setConnectionSource}
+            setConnectionTarget={setConnectionTarget}
+            setConnectionLabel={setConnectionLabel}
+            setConnectionDirection={setConnectionDirection}
+            setEditingEdgeId={setEditingEdgeId}
+            setShowAddConnection={setShowAddConnection}
+            setShowEdgePopup={setShowEdgePopup}
+            setGraphData={setGraphData}
+            setSelectedEdgeId={setSelectedEdgeId}
+            nodeDetails={nodeDetails}
+          />
+        )}
+        {(isDetailsVisible || justClosedRecently) ? (
+          <NodeDetailsPanel
+            setGraphData={setGraphData}
+            selectedNode={selectedNode}
+            nodeDetails={nodeDetails}
+            setNodeDetails={setNodeDetails}
+            networkRef={networkRef}
+            nodesRed={nodesRef}
+            setIsDetailsVisible={setIsDetailsVisible}
+            setJustClosedRecently={setJustClosedRecently}
+            isDetailsVisible={isDetailsVisible}
+            SERIES_OPTIONS={SERIES_OPTIONS}
+            STATUS_OPTIONS={STATUS_OPTIONS}
+            availableRoles={availableRoles}
+            setAvailableRoles={setAvailableRoles}
+            availableSecondarySeries={availableSecondarySeries}
+            setAvailableSecondarySeries={setAvailableSecondarySeries}
+          />
+        ) : null}
+        {showTimelinePopup && (
+          <AddTimelineEntryPopup
+            entryText={entryText}
+            setEntryText={setEntryText}
+            entryType={entryType}
+            setEntryType={setEntryType}
+            entryDate={entryDate}
+            setEntryDate={setEntryDate}
+            entryTime={entryTime}
+            setEntryTime={setEntryTime}
+            networkRef={networkRef}
+            graphData={graphData}
+            nodeDetails={nodeDetails}
+            setTimelineEntries={setTimelineEntries}
+            setSnapshots={setSnapshots}
+            setShowTimelinePopup={setShowTimelinePopup}
+          />
+        )}
+        {showTickContextMenu && (
+          <TickContextMenu
+            tickContextMenuPosition={tickContextMenuPosition}
+            selectedTickIndex={selectedTickIndex}
+            setTimelineEntries={setTimelineEntries}
+            timelineEntries={timelineEntries}
+            setShowTickContextMenu={setShowTickContextMenu}
+            selectedSnapshotIndex={selectedSnapshotIndex}
+            setSelectedSnapshotIndex={setSelectedSnapshotIndex}
+          />
+        )}
+      </ProjectProvider>
     </div>
   );
 }
