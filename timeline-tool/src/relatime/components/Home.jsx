@@ -1,19 +1,29 @@
 // React Imports
 import { useState, useRef, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
+
+// Account Import
+import AccountMenu from '../../accounts/components/AccountMenu.jsx';
+import AccountProjects from '../../accounts/components/AccountProjects.jsx';
+import AccountLogin from '../../accounts/components/AccountLogin.jsx';
+
 // Component Imports
 import NetworkGraph from './NetworkGraph.jsx';
 import TimelineTrack from './TimelineTrack.jsx';
 import NodeDetailsPanel from './NodeDetailsPanel.jsx';
+
 // Popup Imports
 import AddConnectionPopup from './popups/AddConnectionPopup.jsx';
 import AddNodePopup from './popups/AddNodePopup.jsx';
 import AddTimelineEntryPopup from './popups/AddTimelineEntryPopup.jsx';
 import ConnectionContextMenu from './popups/ConnectionContextMenu.jsx';
 import TickContextMenu from './popups/TickContextMenu.jsx';
+
 // Helper Imports
 import ThemeToggleSlider from '../utils/themeHelper.jsx';
 import { handleUpdateSnapshot } from '../utils/timelineHelpers.jsx';
 import { saveProject, loadProject } from '../utils/saveload.jsx';
+
 // Style Import
 import '../styles/master-style.css';
 
@@ -21,7 +31,8 @@ import '../styles/master-style.css';
 const SERIES_OPTIONS = ["Series A", "Series B", "Series C"];
 const STATUS_OPTIONS = ["Alive", "Deceased", "Unknown"];
 
-export default function TimelineRelationshipApp() {
+
+export default function Home() {
   const [timelineEntries, setTimelineEntries] = useState([]);
   const [snapshots, setSnapshots] = useState([]);
   const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
@@ -163,6 +174,9 @@ export default function TimelineRelationshipApp() {
             setSnapshots,
           })}
           />
+          <div>
+            <AccountMenu />
+          </div>
         </div>
       </div>
       <div className="main-content">

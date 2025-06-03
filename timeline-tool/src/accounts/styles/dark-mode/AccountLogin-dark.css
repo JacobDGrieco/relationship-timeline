@@ -1,0 +1,20 @@
+.dark .login-box {
+  background: #1f1f1f;
+  color: #f0f0f0;
+}
+
+.dark input {
+  background: #333;
+  color: white;
+  border: 1px solid #666;
+}
+
+.dark .login-buttons button {
+  background: #333;
+  color: white;
+}
+
+.dark .login-buttons button:hover {
+  background: #081ca1;
+  color: white;
+}
