@@ -1,4 +1,14 @@
-export async function saveProject() {
+import JSZip from 'jszip';
+
+export async function saveProject({
+    nodeDetails,
+    graphData,
+    timelineEntries,
+    timelineStartDate,
+    timelineEndDate,
+    snapshots,
+    projectName
+}) {
     const zip = new JSZip();
     const cleanDetails = {};
     const images = {};
@@ -47,7 +57,18 @@ export async function saveProject() {
     URL.revokeObjectURL(url);
 }
 
-export async function loadProject(file, onLoad) {
+export async function loadProject(
+    file,
+    {
+        setProjectName,
+        setTimelineEntries,
+        setTimelineStartDate,
+        setTimelineEndDate,
+        setGraphData,
+        setNodeDetails,
+        setSnapshots
+    }
+) {
     const zip = await JSZip.loadAsync(file);
     const projectText = await zip.file("project.json").async("string");
     const projectData = JSON.parse(projectText);

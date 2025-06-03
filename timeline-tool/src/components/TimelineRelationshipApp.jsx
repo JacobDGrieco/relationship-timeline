@@ -143,9 +143,26 @@ export default function TimelineRelationshipApp() {
           <button className="header-button" onClick={() => setShowAddConnection(true)}>Add Connection</button>
         </div>
         <div className="header-right">
-          <button onClick={saveProject}>Save Project</button>
+          <button onClick={() => saveProject({
+            nodeDetails,
+            graphData,
+            timelineEntries,
+            timelineStartDate,
+            timelineEndDate,
+            snapshots,
+            projectName: "MyTimelineProject"
+          })}>Save Project</button>
           <label className="file-upload-button" htmlFor="file-upload">Open Project</label>
-          <input id="file-upload" type="file" accept=".zip" onChange={(e) => e.target.files.length && loadProject(e.target.files[0])} />
+          <input id="file-upload" type="file" accept=".zip" onChange={(e) => e.target.files.length && loadProject(e.target.files[0], {
+            setProjectName,
+            setTimelineEntries,
+            setTimelineStartDate,
+            setTimelineEndDate,
+            setGraphData,
+            setNodeDetails,
+            setSnapshots,
+          })}
+          />
         </div>
       </div>
       <div className="main-content">
