@@ -1,0 +1,95 @@
+/* Outer wrapper to center the container on screen */
+.saved-projects-wrapper {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3rem 1rem;
+  box-sizing: border-box;
+  background-color: var(--bg-main, #121212);
+}
+
+
+/* Main container that holds the table */
+.saved-projects-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: var(--bg-secondary, #1f1f1f);
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+  padding: 3rem;
+  color: var(--text-primary, #fff);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+
+/* Title styling */
+.saved-projects-container h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2.2rem;
+}
+
+/* Table styling */
+.project-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.project-table th,
+.project-table td {
+  padding: 1.2rem 1rem;
+  text-align: left;
+}
+
+.project-table th {
+  background-color: var(--accent-color, #2c2c2c);
+  font-weight: 600;
+  border-bottom: 2px solid #444;
+}
+
+.project-table td {
+  background-color: var(--bg-dark, #2a2a2a);
+  border-bottom: 1px solid #444;
+}
+
+.project-table tr:hover {
+  background-color: var(--bg-hover, #383838);
+}
+
+/* Buttons */
+.project-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.project-actions button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.project-actions button.load {
+  background-color: #4caf50;
+  color: white;
+}
+
+.project-actions button.load:hover {
+  background-color: #43a047;
+}
+
+.project-actions button.delete {
+  background-color: #f44336;
+  color: white;
+}
+
+.project-actions button.delete:hover {
+  background-color: #d32f2f;
+}

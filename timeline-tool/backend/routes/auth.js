@@ -17,7 +17,7 @@ router.post('/signup', async (req, res) => {
 
     const newUser = new User({
       username,
-      password: hashedPassword, // ✅ Make sure it's hashed
+      password: hashedPassword,
       email
     });
 

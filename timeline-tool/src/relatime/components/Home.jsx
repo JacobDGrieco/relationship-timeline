@@ -4,8 +4,6 @@ import { Routes, Route } from 'react-router-dom';
 
 // Account Import
 import AccountMenu from '../../accounts/components/AccountMenu.jsx';
-import AccountProjects from '../../accounts/components/AccountProjects.jsx';
-import AccountLogin from '../../accounts/components/AccountLogin.jsx';
 
 // Component Imports
 import NetworkGraph from './NetworkGraph.jsx';
@@ -22,7 +20,7 @@ import TickContextMenu from './popups/TickContextMenu.jsx';
 // Helper Imports
 import ThemeToggleSlider from '../utils/themeHelper.jsx';
 import { handleUpdateSnapshot } from '../utils/timelineHelpers.jsx';
-import { saveProject, loadProject } from '../utils/saveload.jsx';
+import { saveProject } from '../utils/saveloadToCloud.jsx';
 
 // Style Import
 import '../styles/master-style.css';
@@ -147,13 +145,6 @@ export default function Home() {
       <div className="header">
         <div className="header-left">
           <input type="text" placeholder="Project Name" value={projectName} onChange={(e) => setProjectName(e.target.value)} />
-          <ThemeToggleSlider />
-        </div>
-        <div className="header-center">
-          <button onClick={() => setShowAddPerson(true)} disabled={!graphMounted}>Add Node</button>
-          <button className="header-button" onClick={() => setShowAddConnection(true)}>Add Connection</button>
-        </div>
-        <div className="header-right">
           <button onClick={() => saveProject({
             nodeDetails,
             graphData,
@@ -161,19 +152,15 @@ export default function Home() {
             timelineStartDate,
             timelineEndDate,
             snapshots,
-            projectName: "MyTimelineProject"
+            projectName: projectName || 'Untitled Project'
           })}>Save Project</button>
-          <label className="file-upload-button" htmlFor="file-upload">Open Project</label>
-          <input id="file-upload" type="file" accept=".zip" onChange={(e) => e.target.files.length && loadProject(e.target.files[0], {
-            setProjectName,
-            setTimelineEntries,
-            setTimelineStartDate,
-            setTimelineEndDate,
-            setGraphData,
-            setNodeDetails,
-            setSnapshots,
-          })}
-          />
+        </div>
+        <div className="header-center">
+          <button onClick={() => setShowAddPerson(true)} disabled={!graphMounted}>Add Node</button>
+          <button className="header-button" onClick={() => setShowAddConnection(true)}>Add Connection</button>
+        </div>
+        <div className="header-right">
+          <ThemeToggleSlider />
           <div>
             <AccountMenu />
           </div>

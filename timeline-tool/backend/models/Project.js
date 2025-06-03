@@ -1,14 +1,15 @@
 import mongoose from 'mongoose';
 
 const ProjectSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  name: String,
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  projectName: { type: String, default: 'Untitled Project' },
   graphData: Object,
   nodeDetails: Object,
   timelineEntries: Array,
   timelineStartDate: String,
   timelineEndDate: String,
   snapshots: Array,
+  createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
 
