@@ -2,7 +2,6 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
-
 import authRoutes from './routes/auth.js';
 import projectRoutes from './routes/project.js';
 
@@ -19,13 +18,17 @@ mongoose.connect(process.env.MONGO_URI, {
   .then(() => { console.log('Connected to MongoDB:', mongoose.connection.name); })
   .catch(err => console.error('MongoDB connection error:', err));
 
+app.use('/api/auth', authRoutes);
+app.use('/api/project', projectRoutes);
+
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
 });
 
-app.use('/api/auth', authRoutes);
-app.use('/api/project', projectRoutes);
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
 app.use((err, req, res, next) => {
   console.error('Unhandled server error:', err);

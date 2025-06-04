@@ -19,8 +19,6 @@ export async function saveProject(projectData) {
 }
 
 export async function loadProject(projectId, token) {
-  console.log("Project ID:", projectId);
-  console.log("Token:", token);
   try {
     const res = await fetch(`http://localhost:4000/api/project/load/${projectId}`, {
       headers: {
@@ -28,7 +26,6 @@ export async function loadProject(projectId, token) {
       }
     });
 
-    console.log("Response status:", res.status);
     if (!res.ok) throw new Error("Failed to load project");
 
     const data = await res.json();

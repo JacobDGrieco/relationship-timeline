@@ -39,17 +39,40 @@ router.post('/save', authMiddleware, async (req, res) => {
   }
 });
 
-router.get('/load/:id', authMiddleware, async (req, res) => {
+router.get('/load', authMiddleware, async (req, res) => {
   try {
     console.log(`Fetching all projects for user ${req.userId}`);
     const projects = await Project.find({ userId: req.userId }).sort({ updatedAt: -1 });
     res.json(projects);
   } catch (err) {
-    console.error("Error fetching projects:", err);
+    console.error("Error loading projects:", err);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
+router.get('/load/:id', authMiddleware, async (req, res) => {
+  try {
+    const projectId = req.params.id;
+    const userId = req.userId;
 
+    console.log(`Attempting to load project ${projectId} for user ${userId}`);
+
+    const project = await Project.findOne({ _id: projectId, userId });
+
+    if (!project) {
+      console.log("Project not found or does not belong to user.");
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json(project);
+  } catch (err) {
+    console.error("Error loading project:", err);
+    res.status(500).json({ error: 'Server error while loading project' });
+  }
+});
+
+router.get('/debug', (req, res) => {
+  res.json({ message: 'project route works' });
+});
 
 export default router;

@@ -5,48 +5,44 @@ import { useProject } from '../../relatime/utils/projectContext.jsx';
 import '../styles/regular-mode/AccountProjects.css';
 
 export default function AccountProjects() {
-  const {
-    setProjectName,
-    setGraphData,
-    setNodeDetails,
-    setTimelineEntries,
-    setTimelineStartDate,
-    setTimelineEndDate,
-    setSnapshots
-  } = useProject();
-
+  const { loadFromObject } = useProject();
   const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.warn("No token found in localStorage.");
-        return;
-      }
-
       try {
+        const token = localStorage.getItem('token');
         const res = await fetch('http://localhost:4000/api/project/load', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         if (!res.ok) {
-          const errorText = await res.text();
-          console.error("Failed to fetch projects:", errorText);
-          return;
+          const text = await res.text();
+          throw new Error(`Failed to fetch projects: ${text}`);
         }
 
         const data = await res.json();
         setProjects(data);
       } catch (err) {
-        console.error("Error fetching projects:", err);
+        console.error('Error fetching projects:', err);
       }
     };
-
     fetchProjects();
   }, []);
 
+  const handleLoad = async (projectId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const data = await loadProject(projectId, token);
+      loadFromObject(data);
+      navigate('/');
+    } catch (err) {
+      console.error("Failed to load project:", err);
+    }
+  };
 
   const handleDelete = async (projectId) => {
     const token = localStorage.getItem('token');
@@ -57,25 +53,6 @@ export default function AccountProjects() {
       }
     });
     setProjects(projects.filter(p => p._id !== projectId));
-  };
-
-  const handleLoad = async (projectId) => {
-    try {
-      const token = localStorage.getItem('token'); // or useContext(AuthContext)
-      const data = await loadProject(projectId, token);
-
-      setProjectName(data.projectName);
-      setGraphData(data.graphData);
-      setNodeDetails(data.nodeDetails);
-      setTimelineEntries(data.timelineEntries);
-      setTimelineStartDate(data.timelineStartDate);
-      setTimelineEndDate(data.timelineEndDate);
-      setSnapshots(data.snapshots);
-
-      navigate('/');
-    } catch (err) {
-      console.error("Failed to load project:", err);
-    }
   };
 
   return (
