@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadProject } from '../utils/saveloadToCloud.jsx';
 import { useProject } from '../../relatime/utils/projectContext.jsx';
-import '../styles/regular-mode/AccountProjects.css';
+import '../../styles/master-style.css';
 
 export default function AccountProjects() {
   const { loadFromObject } = useProject();

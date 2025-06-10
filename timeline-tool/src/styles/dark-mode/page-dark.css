@@ -1,0 +1,28 @@
+body.dark {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+
+body.dark .app-container {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+
+body.dark .details-panel,
+body.dark .bottom-section,
+body.dark #network-container {
+  background-color: #374151;
+  color: #f3f4f6;
+  border-color: #4b5563;
+}
+
+body.dark input,
+body.dark select,
+body.dark textarea {
+  background-color: #4b5563;
+  border-color: #6b7280;
+}
+
+.app-container.dark {
+  background: #2d2e2f;
+}
