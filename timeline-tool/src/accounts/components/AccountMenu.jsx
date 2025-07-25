@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import defaultUserIcon from '../default-user-icon.png';
-import '../styles/regular-mode/AccountMenu.css';
+import '../../styles/master-style.css';
 
 export default function AccountMenu() {
   const [isDark, setIsDark] = useState(false);

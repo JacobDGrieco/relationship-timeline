@@ -6,11 +6,7 @@
 @import url('./regular-mode/timeline.css');
 @import url('./regular-mode/popup.css');
 @import url('./regular-mode/edge-popup.css');
-@import url('./regular-mode/AccountLogin.css');
-@import url('./regular-mode/AccountMenu.css');
-@import url('./regular-mode/AccountProjects.css');
 
-@import url('./dark-mode/AccountLogin-dark.css');
 @import url('./dark-mode/page-dark.css');
 @import url('./dark-mode/details-panel-dark.css');
 @import url('./dark-mode/timeline-dark.css');
