@@ -19,7 +19,7 @@ import TickContextMenu from './popups/TickContextMenu.jsx';
 
 // Helper Imports
 import ThemeToggleSlider from '../utils/themeHelper.jsx';
-import { handleUpdateSnapshot } from '../utils/timelineHelpers.jsx';
+import { handleUpdateSnapshots } from '../utils/timelineHelpers.jsx';
 import { saveProject } from '../../accounts/utils/SLDToCloud.jsx';
 
 // Style Import
@@ -173,7 +173,7 @@ export default function Home() {
           <div className="timeline-input" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button onClick={() => setShowTimelinePopup(true)}>Add Event</button>
-              <button onClick={() => handleUpdateSnapshot({
+              <button onClick={() => handleUpdateSnapshots({
                 selectedSnapshotIndex,
                 timelineEntries,
                 setTimelineEntries,
@@ -199,6 +199,7 @@ export default function Home() {
                 timelineEntries={timelineEntries}
                 timelineStartDate={timelineStartDate}
                 timelineEndDate={timelineEndDate}
+                selectedSnapshotIndex={selectedSnapshotIndex}
                 setSelectedSnapshotIndex={setSelectedSnapshotIndex}
                 setGraphData={setGraphData}
                 setNodeDetails={setNodeDetails}
@@ -228,6 +229,7 @@ export default function Home() {
           personSeries={personSeries}
           setPersonSeries={setPersonSeries}
           SERIES_OPTIONS={SERIES_OPTIONS}
+          networkRef={networkRef}
           nodesRef={nodesRef}
           setGraphData={setGraphData}
           setNodeDetails={setNodeDetails}
@@ -263,6 +265,7 @@ export default function Home() {
           setEditingEdgeId={setEditingEdgeId}
           setGraphData={setGraphData}
           networkRef={networkRef}
+          nodesRef={nodesRef}
           timelineEntries={timelineEntries}
           selectedSnapshotIndex={selectedSnapshotIndex}
           setTimelineEntries={setTimelineEntries}
@@ -328,6 +331,8 @@ export default function Home() {
           setTimelineEntries={setTimelineEntries}
           setSnapshots={setSnapshots}
           setShowTimelinePopup={setShowTimelinePopup}
+          timelineEntries={timelineEntries}
+          setSelectedSnapshotIndex={setSelectedSnapshotIndex}
         />
       )}
       {showTickContextMenu && (

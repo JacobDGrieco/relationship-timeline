@@ -1,20 +1,22 @@
 import { createSnapshot, getNowDateTime } from "../../utils/timelineHelpers";
 
 export default function AddTimelineEntryPopup({
-  entryText,
-  setEntryText,
-  entryType,
-  setEntryType,
-  entryDate,
-  setEntryDate,
-  entryTime,
-  setEntryTime,
-  networkRef,
-  graphData,
-  nodeDetails,
-  setTimelineEntries,
-  setSnapshots,
-  setShowTimelinePopup
+    entryText,
+    setEntryText,
+    entryType,
+    setEntryType,
+    entryDate,
+    setEntryDate,
+    entryTime,
+    setEntryTime,
+    networkRef,
+    graphData,
+    nodeDetails,
+    setTimelineEntries,
+    setSnapshots,
+    setShowTimelinePopup,
+    timelineEntries,
+    setSelectedSnapshotIndex
 }) {
     return (
         <div className="popup-overlay">
@@ -65,15 +67,17 @@ export default function AddTimelineEntryPopup({
                     <button className="confirm" onClick={() => {
                         if (!entryText.trim() || !entryDate) return;
                         const timestamp = new Date(`${entryDate}T${entryTime || "00:00"}`).toISOString();
-
                         const snapshot = createSnapshot(networkRef, graphData, nodeDetails);
+                        const updated = [...timelineEntries, { type: entryType, text: entryText, timestamp, snapshot }];
+                        const newIndex = updated.findIndex(e => e.timestamp === timestamp && e.text === entryText);
                         const { date, time } = getNowDateTime();
 
-                        setTimelineEntries(prev => [
-                            ...prev,
-                            { type: entryType, text: entryText, timestamp, snapshot }
-                        ]);
+                        setTimelineEntries(updated);
                         setSnapshots(prev => [...prev, snapshot]);
+                        if (newIndex !== -1) {
+                            setSelectedSnapshotIndex(newIndex);
+                        }
+                
                         setShowTimelinePopup(false);
                         setEntryText("");
                         setEntryType("event");

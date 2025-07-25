@@ -1,5 +1,5 @@
 import { generateUniqueID } from "./graphHelpers";
-import { applyToSnapshots } from "./timelineHelpers";
+import { handleUpdateSnapshots } from "./timelineHelpers";
 
 export function handleAddPerson({
   personName,
@@ -18,7 +18,9 @@ export function handleAddPerson({
   applyMode,
   selectedSnapshotIndex,
   partialStartIndex,
-  partialEndIndex
+  partialEndIndex,
+  networkRef,
+  nodeDetails
 }) {
   const id = generateUniqueID();
   const label = personName || `Node ${id}`;
@@ -46,13 +48,15 @@ export function handleAddPerson({
     },
   }));
 
-  applyToSnapshots(newNode, 'node', {
+  handleUpdateSnapshots(newNode, 'node', {
     applyMode,
     selectedSnapshotIndex,
     partialStartIndex,
     partialEndIndex,
     timelineEntries,
-    setTimelineEntries
+    setTimelineEntries,
+    networkRef,
+    nodeDetails
   });
 
   setPersonName('');

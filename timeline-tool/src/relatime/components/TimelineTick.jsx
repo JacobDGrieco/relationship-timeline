@@ -7,9 +7,9 @@ export default function TimelineTick({
     stopTime,
     fullWidth,
     stackMap,
-    lastActiveTickRef,
     setGraphData,
     setNodeDetails,
+    selectedSnapshotIndex,
     setSelectedSnapshotIndex,
     setSelectedTickIndex,
     setHoveredTick,
@@ -25,24 +25,21 @@ export default function TimelineTick({
     const inView = entryTime >= startTime && entryTime <= stopTime;
 
     const handleClick = () => {
-        if (lastActiveTickRef.current !== null) {
-            const lastActive = document.querySelector(`.timeline-tick.active`);
-            if (lastActive) lastActive.classList.remove('active');
-        }
+        // When a tick is clicked, update state to make this tick the selected one.
+        setSelectedSnapshotIndex(idx);
 
-        const currentTick = document.querySelectorAll('.timeline-tick')[idx];
-        if (currentTick) currentTick.classList.add('active');
-        lastActiveTickRef.current = idx;
-
+        // Update the graph to reflect this snapshot
         const snapshot = entry.snapshot;
         setGraphData(snapshot.graphData);
         setNodeDetails(snapshot.nodeDetails);
-        setSelectedSnapshotIndex(idx);
+
+        // Update the network/vis data
         nodesRef.current.clear();
         nodesRef.current.add(snapshot.graphData.nodes);
         networkRef.current.body.data.edges.clear();
         networkRef.current.body.data.edges.add(snapshot.graphData.edges);
     };
+
 
     const handleContextMenu = (e) => {
         e.preventDefault();
@@ -56,7 +53,7 @@ export default function TimelineTick({
     return (
         <div
             key={idx}
-            className={`timeline-tick ${entry.type}`}
+            className={`timeline-tick ${entry.type} ${idx === selectedSnapshotIndex ? "active" : ""}`}
             style={{ left: `${leftPx}px`, opacity: inView ? 1 : 0.15, pointerEvents: inView ? 'auto' : 'none' }}
             onClick={handleClick}
             onContextMenu={handleContextMenu}

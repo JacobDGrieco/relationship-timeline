@@ -6,7 +6,9 @@ export default function AddNodePopup({
   personSeries,
   setPersonSeries,
   SERIES_OPTIONS,
+  networkRef,
   nodesRef,
+  nodeDetails,
   setGraphData,
   setNodeDetails,
   setConnectionLabel,
@@ -20,7 +22,7 @@ export default function AddNodePopup({
   partialStartIndex,
   setPartialStartIndex,
   partialEndIndex,
-  setPartialEndIndex
+  setPartialEndIndex,
 }) {
 
   //console.log("AddNodePopup props:", { applyMode, setApplyMode });
@@ -109,7 +111,9 @@ export default function AddNodePopup({
             applyMode,
             selectedSnapshotIndex,
             partialStartIndex,
-            partialEndIndex
+            partialEndIndex,
+            networkRef,
+            nodeDetails
           })}>Add</button>
         </div>
       </div>

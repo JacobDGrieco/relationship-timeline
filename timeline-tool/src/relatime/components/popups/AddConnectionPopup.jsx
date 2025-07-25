@@ -17,6 +17,7 @@ export default function AddConnectionPopup({
     setShowAddConnection,
     setGraphData,
     networkRef,
+    nodesRef,
     timelineEntries,
     selectedSnapshotIndex,
     setTimelineEntries,
@@ -155,7 +156,9 @@ export default function AddConnectionPopup({
                         applyMode,
                         selectedSnapshotIndex,
                         partialStartIndex,
-                        partialEndIndex
+                        partialEndIndex,
+                        networkRef,
+                        nodeDetails
                     })}>Add</button>
                 </div>
             </div>

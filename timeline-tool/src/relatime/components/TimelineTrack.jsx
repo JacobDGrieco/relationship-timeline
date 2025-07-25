@@ -7,6 +7,7 @@ export default function TimelineTrack({
   timelineEntries,
   timelineStartDate,
   timelineEndDate,
+  selectedSnapshotIndex,
   setSelectedSnapshotIndex,
   setGraphData,
   setNodeDetails,
@@ -37,6 +38,7 @@ export default function TimelineTrack({
         lastActiveTickRef={lastActiveTickRef}
         setGraphData={setGraphData}
         setNodeDetails={setNodeDetails}
+        selectedSnapshotIndex={selectedSnapshotIndex}
         setSelectedSnapshotIndex={setSelectedSnapshotIndex}
         setSelectedTickIndex={setSelectedTickIndex}
         setHoveredTick={setHoveredTick}
@@ -54,6 +56,7 @@ export default function TimelineTrack({
     lastActiveTickRef,
     setGraphData,
     setNodeDetails,
+    selectedSnapshotIndex,
     setSelectedSnapshotIndex,
     setSelectedTickIndex,
     setTickContextMenuPosition,

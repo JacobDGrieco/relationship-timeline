@@ -1,4 +1,4 @@
-import { applyToSnapshots } from "./timelineHelpers";
+import { handleUpdateSnapshots } from "./timelineHelpers";
 
 export function handleAddConnection({
     nodeDetails,
@@ -68,13 +68,15 @@ export function handleAddConnection({
         }));
     }
 
-    applyToSnapshots(updatedEdge, 'edge', {
+    handleUpdateSnapshots(updatedEdge, 'edge', {
         applyMode,
         selectedSnapshotIndex,
         partialStartIndex,
         partialEndIndex,
         timelineEntries,
-        setTimelineEntries
+        setTimelineEntries,
+        networkRef,
+        nodeDetails
     });
 
     setConnectionSource('');

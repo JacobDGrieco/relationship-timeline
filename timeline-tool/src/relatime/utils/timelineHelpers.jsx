@@ -43,35 +43,32 @@ export function createSnapshot(networkRef, graphData, nodeDetails) {
   };
 }
 
-export function handleUpdateSnapshot({
-  selectedSnapshotIndex,
-  timelineEntries,
-  setTimelineEntries,
-  networkRef,
-  nodeDetails
-}) {
-  if (selectedSnapshotIndex !== null && timelineEntries[selectedSnapshotIndex]) {
-    const updated = [...timelineEntries];
-    updated[selectedSnapshotIndex].snapshot = {
-      graphData: {
-        nodes: networkRef.current.body.data.nodes.get(),
-        edges: networkRef.current.body.data.edges.get(),
-      },
-      nodeDetails: JSON.parse(JSON.stringify(nodeDetails))
-    };
-    setTimelineEntries(updated);
-  }
-};
-
-export function applyToSnapshots(item, type, {
+export function handleUpdateSnapshots(item, type, {
   applyMode,
   selectedSnapshotIndex,
   partialStartIndex,
   partialEndIndex,
   timelineEntries,
-  setTimelineEntries
+  setTimelineEntries,
+  networkRef,
+  nodeDetails
 }) {
-  if (applyMode === 'none') return; // do nothing
+  if (applyMode === 'none') {
+    if (selectedSnapshotIndex !== null && timelineEntries[selectedSnapshotIndex]) {
+      const safeNodeDetails = nodeDetails ? JSON.parse(JSON.stringify(nodeDetails)) : {};
+
+      const updated = [...timelineEntries];
+      updated[selectedSnapshotIndex].snapshot = {
+        graphData: {
+          nodes: networkRef.current.body.data.nodes.get(),
+          edges: networkRef.current.body.data.edges.get(),
+        },
+        nodeDetails: safeNodeDetails
+      };
+      setTimelineEntries(updated);
+    }
+    return;
+  }
 
   const updated = [...timelineEntries];
 
