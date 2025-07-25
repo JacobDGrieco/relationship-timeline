@@ -35,3 +35,19 @@ export async function loadProject(projectId, token) {
     throw err;
   }
 }
+
+export async function deleteProject(projectId, token) {
+  try {
+    const res = await fetch(`http://localhost:4000/api/project/delete/${projectId}`, {
+      
+    });
+
+    if (!res.ok) throw new Error("Failed to delete project");
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("Error deleting project:", err);
+    throw err;
+  }
+}

@@ -15,14 +15,16 @@
   overflow: hidden;
 }
 
-.connection-direction {
+.connection-direction,
+.connection-level {
   display: flex;
   justify-content: space-between;
   margin-bottom: 1rem;
   gap: 0.5rem;
 }
 
-.direction-option {
+.direction-option,
+.level-option {
   display: flex;
   align-items: center;
   gap: 0.25rem;

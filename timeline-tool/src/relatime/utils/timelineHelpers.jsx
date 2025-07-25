@@ -62,3 +62,52 @@ export function handleUpdateSnapshot({
     setTimelineEntries(updated);
   }
 };
+
+export function applyToSnapshots(item, type, {
+  applyMode,
+  selectedSnapshotIndex,
+  partialStartIndex,
+  partialEndIndex,
+  timelineEntries,
+  setTimelineEntries
+}) {
+  if (applyMode === 'none') return; // do nothing
+
+  const updated = [...timelineEntries];
+
+  const applyToIndex = (idx) => {
+    const snap = updated[idx].snapshot;
+    if (type === 'node') {
+      // avoid duplicates if needed
+      if (!snap.graphData.nodes.some(n => n.id === item.id)) {
+        snap.graphData.nodes = [...snap.graphData.nodes, { ...item }];
+      }
+    } else if (type === 'edge') {
+      if (!snap.graphData.edges.some(e => e.id === item.id)) {
+        snap.graphData.edges = [...snap.graphData.edges, { ...item }];
+      }
+    }
+  };
+
+  if (applyMode === 'full') {
+    updated.forEach((_, idx) => applyToIndex(idx));
+  } else if (applyMode === 'forward') {
+    for (let i = selectedSnapshotIndex + 1; i < updated.length; i++) {
+      applyToIndex(i);
+    }
+  } else if (applyMode === 'backward') {
+    for (let i = selectedSnapshotIndex; i >= 0; i--) {
+      applyToIndex(i);
+    }
+  } else if (applyMode === 'partial') {
+    if (partialStartIndex != null && partialEndIndex != null) {
+      const start = Math.min(partialStartIndex, partialEndIndex);
+      const end = Math.max(partialStartIndex, partialEndIndex);
+      for (let i = start; i <= end; i++) {
+        applyToIndex(i);
+      }
+    }
+  }
+
+  setTimelineEntries(updated);
+}

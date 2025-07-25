@@ -1,18 +1,28 @@
+import { applyToSnapshots } from "./timelineHelpers";
+
 export function handleAddConnection({
     nodeDetails,
     connectionSource,
     connectionTarget,
     connectionLabel,
     connectionDirection,
+    connectionLevel,
     editingEdgeId,
     setEditingEdgeId,
     setConnectionSource,
     setConnectionTarget,
     setConnectionLabel,
     setConnectionDirection,
+    setApplyMode,
     setShowAddConnection,
     setGraphData,
-    networkRef
+    networkRef,
+    timelineEntries,
+    setTimelineEntries,
+    applyMode,
+    selectedSnapshotIndex,
+    partialStartIndex,
+    partialEndIndex
 }) {
     const allNodeDetails = Object.entries(nodeDetails);
 
@@ -31,7 +41,8 @@ export function handleAddConnection({
         from: fromId,
         to: toId,
         label: connectionLabel,
-        arrows: getArrowDirection(connectionDirection)
+        arrows: getArrowDirection(connectionDirection),
+        level: connectionLevel
     };
 
     if (editingEdgeId) {
@@ -57,10 +68,20 @@ export function handleAddConnection({
         }));
     }
 
+    applyToSnapshots(updatedEdge, 'edge', {
+        applyMode,
+        selectedSnapshotIndex,
+        partialStartIndex,
+        partialEndIndex,
+        timelineEntries,
+        setTimelineEntries
+    });
+
     setConnectionSource('');
     setConnectionTarget('');
     setConnectionLabel('');
     setConnectionDirection('normal');
+    setApplyMode('none');
     setShowAddConnection(false);
 };
 

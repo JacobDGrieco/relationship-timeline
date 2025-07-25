@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 
-export default function ThemeToggleSlider() {
-  const [isDark, setIsDark] = useState(false);
+export default function ThemeToggleSlider({ isDark, setIsDark }) {
+  useEffect(() => {
+    document.body.classList.toggle('dark', isDark);
+  }, [isDark]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -13,7 +15,6 @@ export default function ThemeToggleSlider() {
   const toggleTheme = () => {
     const newTheme = !isDark ? 'dark' : 'light';
     setIsDark(!isDark);
-    document.body.classList.toggle('dark', !isDark);
     localStorage.setItem('theme', newTheme);
   };
 

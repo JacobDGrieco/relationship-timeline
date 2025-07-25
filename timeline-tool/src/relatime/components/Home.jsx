@@ -20,7 +20,7 @@ import TickContextMenu from './popups/TickContextMenu.jsx';
 // Helper Imports
 import ThemeToggleSlider from '../utils/themeHelper.jsx';
 import { handleUpdateSnapshot } from '../utils/timelineHelpers.jsx';
-import { saveProject } from '../../accounts/utils/saveloadToCloud.jsx';
+import { saveProject } from '../../accounts/utils/SLDToCloud.jsx';
 
 // Style Import
 import '../styles/master-style.css';
@@ -63,6 +63,7 @@ export default function Home() {
   const [connectionTarget, setConnectionTarget] = useState('');
   const [connectionLabel, setConnectionLabel] = useState('');
   const [connectionDirection, setConnectionDirection] = useState('normal');
+  const [connectionLevel, setConnectionLevel] = useState(1);
   const [selectedEdgeId, setSelectedEdgeId] = useState(null);
   const [showEdgePopup, setShowEdgePopup] = useState(false);
   const [edgePopupPosition, setEdgePopupPosition] = useState({ x: 0, y: 0 });
@@ -72,6 +73,12 @@ export default function Home() {
   const [tickContextMenuPosition, setTickContextMenuPosition] = useState({ x: 0, y: 0 });
   const [selectedTickIndex, setSelectedTickIndex] = useState(null);
   const [hoveredTick, setHoveredTick] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('theme') === 'dark';
+  });
+  const [applyMode, setApplyMode] = useState('none');  // none, forward, backward, full, partial
+  const [partialStartIndex, setPartialStartIndex] = useState(null);
+  const [partialEndIndex, setPartialEndIndex] = useState(null);
 
   const containerRef = useRef();
   const networkRef = useRef();
@@ -130,6 +137,7 @@ export default function Home() {
         setEdgePopupPosition={setEdgePopupPosition}
         setIsDetailsVisible={setIsDetailsVisible}
         setJustClosedRecently={setJustClosedRecently}
+        isDarkMode={isDarkMode}
       />
       <div className="header">
         <div className="header-left">
@@ -149,7 +157,7 @@ export default function Home() {
           <button className="header-button" onClick={() => setShowAddConnection(true)}>Add Connection</button>
         </div>
         <div className="header-right">
-          <ThemeToggleSlider />
+          <ThemeToggleSlider isDark={isDarkMode} setIsDark={setIsDarkMode} />
           <div>
             <AccountMenu />
           </div>
@@ -226,6 +234,15 @@ export default function Home() {
           setConnectionLabel={setConnectionLabel}
           setConnectionDirection={setConnectionDirection}
           setShowAddPerson={setShowAddPerson}
+          timelineEntries={timelineEntries}
+          selectedSnapshotIndex={selectedSnapshotIndex}
+          setTimelineEntries={setTimelineEntries}
+          applyMode={applyMode}
+          setApplyMode={setApplyMode}
+          partialStartIndex={partialStartIndex}
+          setPartialStartIndex={setPartialStartIndex}
+          partialEndIndex={partialEndIndex}
+          setPartialEndIndex={setPartialEndIndex}
         />
       )}
       {showAddConnection && (
@@ -239,11 +256,22 @@ export default function Home() {
           setConnectionLabel={setConnectionLabel}
           connectionDirection={connectionDirection}
           setConnectionDirection={setConnectionDirection}
+          connectionLevel={connectionLevel}
+          setConnectionLevel={setConnectionLevel}
           setShowAddConnection={setShowAddConnection}
           editingEdgeId={editingEdgeId}
           setEditingEdgeId={setEditingEdgeId}
           setGraphData={setGraphData}
           networkRef={networkRef}
+          timelineEntries={timelineEntries}
+          selectedSnapshotIndex={selectedSnapshotIndex}
+          setTimelineEntries={setTimelineEntries}
+          applyMode={applyMode}
+          setApplyMode={setApplyMode}
+          partialStartIndex={partialStartIndex}
+          setPartialStartIndex={setPartialStartIndex}
+          partialEndIndex={partialEndIndex}
+          setPartialEndIndex={setPartialEndIndex}
         />
       )}
 

@@ -14,7 +14,8 @@ export default function NetworkGraph({
     setShowEdgePopup,
     setEdgePopupPosition,
     setIsDetailsVisible,
-    setJustClosedRecently
+    setJustClosedRecently,
+    isDarkMode
 }) {
     useEffect(() => {
         const processedNodes = graphData.nodes.map((node) => {
@@ -24,9 +25,22 @@ export default function NetworkGraph({
             }
             return { ...node, shape: "dot" };
         });
-        
+
         const nodes = new DataSet(processedNodes);
-        const edges = new DataSet(graphData.edges);
+        
+        const styledEdges = graphData.edges.map(edge => {
+            let style = {};
+            if (edge.level === 2) { // strong
+                style = { width: 4, dashes: false };
+            } else if (edge.level === 0) { // weak
+                style = { width: 2, dashes: [5, 5] };
+            } else { // normal
+                style = { width: 2, dashes: false };
+            }
+            return { ...edge, ...style };
+        });
+        const edges = new DataSet(styledEdges);
+
         nodesRef.current = nodes;
         setGraphMounted(true);
 
@@ -53,7 +67,10 @@ export default function NetworkGraph({
             nodes: {
                 shape: "dot",
                 size: 30,
-                font: { size: 10, color: "#333" },
+                font: { 
+                    size: 10,
+                    color: isDarkMode ? "#fff" : "#333"
+                },
                 borderWidth: 2,
             },
             edges: {
@@ -114,5 +131,5 @@ export default function NetworkGraph({
                 }
             };
         }
-    }, [graphData]);
+    }, [graphData, nodeDetails, isDarkMode]);
 }

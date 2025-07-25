@@ -1,4 +1,5 @@
 import { generateUniqueID } from "./graphHelpers";
+import { applyToSnapshots } from "./timelineHelpers";
 
 export function handleAddPerson({
   personName,
@@ -10,7 +11,14 @@ export function handleAddPerson({
   setPersonSeries,
   setConnectionLabel,
   setConnectionDirection,
-  setShowAddPerson
+  setApplyMode,
+  setShowAddPerson,
+  timelineEntries,
+  setTimelineEntries,
+  applyMode,
+  selectedSnapshotIndex,
+  partialStartIndex,
+  partialEndIndex
 }) {
   const id = generateUniqueID();
   const label = personName || `Node ${id}`;
@@ -38,10 +46,20 @@ export function handleAddPerson({
     },
   }));
 
+  applyToSnapshots(newNode, 'node', {
+    applyMode,
+    selectedSnapshotIndex,
+    partialStartIndex,
+    partialEndIndex,
+    timelineEntries,
+    setTimelineEntries
+  });
+
   setPersonName('');
   setPersonSeries('');
   setConnectionLabel('');
   setConnectionDirection('normal');
+  setApplyMode('none');
   setShowAddPerson(false);
 }
 
