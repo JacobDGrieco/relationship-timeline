@@ -37,6 +37,7 @@ export default function AccountProjects() {
     try {
       const token = localStorage.getItem('token');
       const data = await loadProject(projectId, token);
+      localStorage.setItem('currentProjectId', projectId);
       loadFromObject(data);
       navigate('/');
     } catch (err) {

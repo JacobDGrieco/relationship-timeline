@@ -40,6 +40,7 @@ export default function Home() {
     timelineEndDate, setTimelineEndDate,
     snapshots, setSnapshots
   } = useProject();
+  const [currentProjectId, setCurrentProjectId] = useState(null);
   const [showTimelinePopup, setShowTimelinePopup] = useState(false);
   const [entryText, setEntryText] = useState("");
   const [entryType, setEntryType] = useState("event");
@@ -87,6 +88,11 @@ export default function Home() {
   const nodesRef = useRef(null);
   const timelineTrackRef = useRef(null);
   const lastActiveTickRef = useRef(null);
+
+  useEffect(() => {
+    const storedId = localStorage.getItem('currentProjectId');
+    if (storedId) setCurrentProjectId(storedId);
+  }, []);
 
   useEffect(() => {
     if (selectedNode && networkRef.current) {
@@ -142,15 +148,23 @@ export default function Home() {
       <div className="header">
         <div className="header-left">
           <input type="text" placeholder="Project Name" value={projectName} onChange={(e) => setProjectName(e.target.value)} />
-          <button onClick={() => saveProject({
-            nodeDetails,
-            graphData,
-            timelineEntries,
-            timelineStartDate,
-            timelineEndDate,
-            snapshots,
-            projectName: projectName || 'Untitled Project'
-          })}>Save Project</button>
+          <button onClick={async () => {
+            const token = localStorage.getItem('token');
+            await saveProject(
+              {
+                nodeDetails,
+                graphData,
+                timelineEntries,
+                timelineStartDate,
+                timelineEndDate,
+                snapshots,
+                projectName: projectName || 'Untitled Project'
+              },
+              token,
+              currentProjectId
+            );
+          }}
+          >Save Project</button>
         </div>
         <div className="header-center">
           <button onClick={() => setShowAddPerson(true)} disabled={!graphMounted}>Add Node</button>

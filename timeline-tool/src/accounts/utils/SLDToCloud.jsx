@@ -1,22 +1,29 @@
-export async function saveProject(projectData) {
-  const token = localStorage.getItem('token');
+export async function saveProject(projectData, token, projectId) {
+  try {
+    const body = {
+      ...projectData
+    };
+    if (projectId) {
+      body._id = projectId; // include if updating
+    }
 
-  const response = await fetch('http://localhost:4000/api/project/save', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(projectData)
-  });
+    const res = await fetch('http://localhost:4000/api/project/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(body)
+    });
 
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || 'Failed to save project');
+    if (!res.ok) throw new Error('Failed to save project');
+    return await res.json();
+  } catch (err) {
+    console.error('Error saving project:', err);
+    throw err;
   }
-
-  return data;
 }
+
 
 export async function loadProject(projectId, token) {
   try {
