@@ -173,13 +173,6 @@ export default function Home() {
           <div className="timeline-input" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button onClick={() => setShowTimelinePopup(true)}>Add Event</button>
-              <button onClick={() => handleUpdateSnapshots({
-                selectedSnapshotIndex,
-                timelineEntries,
-                setTimelineEntries,
-                networkRef,
-                nodeDetails
-              })}>Update Event</button>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <label>Start Date</label>
