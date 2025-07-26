@@ -61,6 +61,54 @@
   background-color: var(--bg-hover, #383838);
 }
 
+.project-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.arrow-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Darken the expanded row */
+.version-history {
+  gap: 4px;
+  background-color: #e9e9e9; /* tweak to your liking */
+}
+
+/* Make each cell in the version-history row align content vertically at the top */
+.version-history td {
+  vertical-align: top;
+  padding: 8px 40px; /* match your table cell padding */
+}
+
+/* Make each version line inside a cell line up with the same index in other cells */
+.version-history td > div {
+  display: flex;
+  align-items: center;
+  height: 32px; /* match your normal row height */
+  line-height: 32px; /* vertically center text in that height */
+  border-bottom: 1px solid transparent; /* ensures consistent spacing */
+  box-sizing: border-box;
+}
+
+/* Remove extra spacing from the last version line if you want */
+.version-history td > div:last-child {
+  margin-bottom: 0;
+}
+
+/* Buttons inside version-history */
+.version-history td button {
+  padding: 2px 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
 /* Buttons */
 .project-actions {
   display: flex;
