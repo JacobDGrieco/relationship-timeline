@@ -12,6 +12,9 @@ export default function AccountProjects() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const cached = localStorage.getItem('projectListCache');
+    if (cached) setProjects(JSON.parse(cached));
+
     const fetchProjects = async () => {
       const token = localStorage.getItem('token');
       const res = await fetch('http://localhost:4000/api/project/list', {
@@ -19,9 +22,12 @@ export default function AccountProjects() {
       });
       const data = await res.json();
       setProjects(data);
+      localStorage.setItem('projectListCache', JSON.stringify(data));
     };
     fetchProjects();
   }, []);
+
+
 
   const handleLoad = async (projectId) => {
     try {
@@ -61,10 +67,8 @@ export default function AccountProjects() {
           </thead>
           <tbody>
             {projects.map(project => (
-              <tr>
-                <td>
-                  {project.projectName}
-                </td>
+              <tr key={project._id}>
+                <td>{project.projectName}</td>
                 <td>{new Date(project.createdAt).toLocaleString()}</td>
                 <td>{new Date(project.updatedAt).toLocaleString()}</td>
                 <td>

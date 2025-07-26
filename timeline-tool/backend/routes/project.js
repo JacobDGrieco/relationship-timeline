@@ -136,14 +136,12 @@ router.delete('/delete/:id', authMiddleware, async (req, res) => {
 
 router.get('/list', authMiddleware, async (req, res) => {
   try {
-    const projects = await Project.find({ userId: req.userId }).select(
-      'projectName createdAt updatedAt versions'
-    );
+    const projects = await Project.find({ userId: req.userId })
+      .select('projectName createdAt updatedAt versions')
+      .lean(); // ✅ faster
 
-    // Map down to lightweight metadata
     const projectSummaries = projects.map(p => {
       const versionCount = p.versions ? p.versions.length : 0;
-      // most recent version metadata (excluding the latest main one if you want)
       const versionMeta = p.versions && p.versions.length > 0
         ? p.versions[p.versions.length - 1].savedAt
         : null;
@@ -164,6 +162,7 @@ router.get('/list', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Server error while fetching project list' });
   }
 });
+
 
 router.get('/debug', (req, res) => {
   res.json({ message: 'project route works' });
