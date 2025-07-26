@@ -27,7 +27,7 @@ export default function NetworkGraph({
         });
 
         const nodes = new DataSet(processedNodes);
-        
+
         const styledEdges = graphData.edges.map(edge => {
             let style = {};
             if (edge.level === 2) { // strong
@@ -48,17 +48,18 @@ export default function NetworkGraph({
         const options = {
             physics: {
                 enabled: true,
-                solver: "repulsion",
-                repulsion: {
-                    nodeDistance: 150,
-                    centralGravity: 0.1,
+                solver: "forceAtlas2Based", // or still "repulsion" if you prefer
+                stabilization: {
+                    iterations: 150, // let it settle more
+                    fit: true
+                },
+                // ForceAtlas2 has a built-in way to avoid crowding
+                forceAtlas2Based: {
+                    gravitationalConstant: -50,   // push apart
+                    centralGravity: 0.01,
                     springLength: 200,
                     springConstant: 0.05,
-                    damping: 0.09
-                },
-                stabilization: {
-                    iterations: 100,
-                    fit: true
+                    avoidOverlap: 1               // <--- this is important
                 }
             },
             layout: {
@@ -67,7 +68,7 @@ export default function NetworkGraph({
             nodes: {
                 shape: "dot",
                 size: 30,
-                font: { 
+                font: {
                     size: 10,
                     color: isDarkMode ? "#fff" : "#333"
                 },
