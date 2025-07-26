@@ -74,7 +74,7 @@ export default function AddNodePopup({
               <option value="">--</option>
               {pastEvents.map(({ idx, entry }) => (
                 <option key={idx} value={idx}>
-                  {entry.text}
+                  {entry.text} — {new Date(entry.timestamp).toLocaleString()}
                 </option>
               ))}
             </select>
@@ -86,7 +86,7 @@ export default function AddNodePopup({
               <option value="">--</option>
               {futureEvents.map(({ idx, entry }) => (
                 <option key={idx} value={idx}>
-                  {entry.text}
+                  {entry.text} — {new Date(entry.timestamp).toLocaleString()}
                 </option>
               ))}
             </select>
