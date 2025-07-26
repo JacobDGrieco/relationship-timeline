@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import Project from '../models/Project.js';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
@@ -18,26 +19,32 @@ function authMiddleware(req, res, next) {
 
 router.post('/save', authMiddleware, async (req, res) => {
   try {
-    const { _id, ...projectData } = req.body;
-    let project;
+    const projectData = req.body;
+    const projectId = projectData._id;
 
-    if (_id) {
+    let project;
+    if (projectId) {
+      project = await Project.findOneAndUpdate(
+        { _id: projectId, userId: req.userId },
+        { ...projectData, userId: req.userId },
+        { new: true, upsert: true }
+      );
+    } else {
       project = await Project.create({
         ...projectData,
         userId: req.userId,
         projectName: projectData.projectName || 'Untitled Project',
         createdAt: new Date()
       });
-    } else {
-      project = await Project.create({ ...projectData, userId: req.userId });
     }
 
-    res.json({ success: true, project });
+    res.status(200).json(project);
   } catch (err) {
-    console.error('Project save error:', err);
-    res.status(500).json({ error: 'Server error saving project' });
+    console.error('Save project error:', err);
+    res.status(500).json({ error: 'Failed to save project' });
   }
 });
+
 
 router.get('/load', authMiddleware, async (req, res) => {
   try {
@@ -70,6 +77,31 @@ router.get('/load/:id', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Server error while loading project' });
   }
 });
+
+router.delete('/delete/:id', authMiddleware, async (req, res) => {
+  try {
+    const projectId = req.params.id;
+    const userId = req.userId;
+
+    console.log(`Attempting to delete project ${projectId} for user ${userId}`);
+
+    const deletedProject = await Project.findOneAndDelete({ _id: projectId, userId });
+
+    if (!deletedProject) {
+      console.log("Project not found or does not belong to user.");
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    console.log(`Successfully deleted project ${projectId}`);
+    res.json({ success: true, deletedId: projectId });
+  } catch (err) {
+    console.error("Error deleting project:", err);
+    res.status(500).json({ error: 'Server error while deleting project' });
+  }
+});
+
+
+
 
 router.get('/debug', (req, res) => {
   res.json({ message: 'project route works' });

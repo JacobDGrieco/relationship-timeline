@@ -39,7 +39,10 @@ export async function loadProject(projectId, token) {
 export async function deleteProject(projectId, token) {
   try {
     const res = await fetch(`http://localhost:4000/api/project/delete/${projectId}`, {
-      
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
 
     if (!res.ok) throw new Error("Failed to delete project");

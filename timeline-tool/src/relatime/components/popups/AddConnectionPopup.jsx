@@ -17,7 +17,6 @@ export default function AddConnectionPopup({
     setShowAddConnection,
     setGraphData,
     networkRef,
-    nodesRef,
     timelineEntries,
     selectedSnapshotIndex,
     setTimelineEntries,
@@ -114,7 +113,7 @@ export default function AddConnectionPopup({
                             <option value="">--</option>
                             {pastEvents.map(({ idx, entry }) => (
                                 <option key={idx} value={idx}>
-                                    {entry.text}
+                                    onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
                                 </option>
                             ))}
                         </select>
@@ -126,7 +125,7 @@ export default function AddConnectionPopup({
                             <option value="">--</option>
                             {futureEvents.map(({ idx, entry }) => (
                                 <option key={idx} value={idx}>
-                                    {entry.text}
+                                    onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
                                 </option>
                             ))}
                         </select>
@@ -156,9 +155,7 @@ export default function AddConnectionPopup({
                         applyMode,
                         selectedSnapshotIndex,
                         partialStartIndex,
-                        partialEndIndex,
-                        networkRef,
-                        nodeDetails
+                        partialEndIndex
                     })}>Add</button>
                 </div>
             </div>

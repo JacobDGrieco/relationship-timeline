@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loadProject } from '../utils/SLDToCloud.jsx';
+import { loadProject, deleteProject } from '../utils/SLDToCloud.jsx';
 import { useProject } from '../../relatime/utils/projectContext.jsx';
 import '../../styles/master-style.css';
 
@@ -45,14 +45,14 @@ export default function AccountProjects() {
   };
 
   const handleDelete = async (projectId) => {
-    const token = localStorage.getItem('token');
-    await fetch(`http://localhost:4000/api/project/delete/${projectId}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    setProjects(projects.filter(p => p._id !== projectId));
+    try {
+      const token = localStorage.getItem('token');
+      await deleteProject(projectId, token);  // 🔥 call your delete helper
+      // After successful delete, update UI
+      setProjects((prevProjects) => prevProjects.filter(p => p._id !== projectId));
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+    }
   };
 
   return (
