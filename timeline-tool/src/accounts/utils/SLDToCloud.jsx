@@ -24,7 +24,6 @@ export async function saveProject(projectData, token, projectId) {
   }
 }
 
-
 export async function loadProject(projectId, token) {
   try {
     const res = await fetch(`http://localhost:4000/api/project/load/${projectId}`, {

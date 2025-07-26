@@ -16,8 +16,6 @@ function authMiddleware(req, res, next) {
   }
 }
 
-
-
 router.post('/save', authMiddleware, async (req, res) => {
   try {
     const projectData = req.body;
@@ -136,8 +134,36 @@ router.delete('/delete/:id', authMiddleware, async (req, res) => {
   }
 });
 
+router.get('/list', authMiddleware, async (req, res) => {
+  try {
+    const projects = await Project.find({ userId: req.userId }).select(
+      'projectName createdAt updatedAt versions'
+    );
 
+    // Map down to lightweight metadata
+    const projectSummaries = projects.map(p => {
+      const versionCount = p.versions ? p.versions.length : 0;
+      // most recent version metadata (excluding the latest main one if you want)
+      const versionMeta = p.versions && p.versions.length > 0
+        ? p.versions[p.versions.length - 1].savedAt
+        : null;
 
+      return {
+        _id: p._id,
+        projectName: p.projectName,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+        versionCount,
+        lastVersionSavedAt: versionMeta
+      };
+    });
+
+    res.json(projectSummaries);
+  } catch (err) {
+    console.error('Error fetching project summaries:', err);
+    res.status(500).json({ error: 'Server error while fetching project list' });
+  }
+});
 
 router.get('/debug', (req, res) => {
   res.json({ message: 'project route works' });

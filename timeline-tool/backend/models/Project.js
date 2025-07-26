@@ -9,7 +9,6 @@ const ProjectSchema = new mongoose.Schema({
   timelineStartDate: String,
   timelineEndDate: String,
   snapshots: Array,
-  versions: [{ snapshot: Object, savedAt: Date }],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
