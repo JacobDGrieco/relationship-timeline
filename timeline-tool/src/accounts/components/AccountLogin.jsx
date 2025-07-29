@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext.jsx';
-import '../../styles/master-style.css';
+import { useAuth } from '../context/AuthContext.jsx';
+import '../../relatime/styles/master-style.css';
 
 export default function AccountLogin() {
   const [isDark, setIsDark] = useState(false);

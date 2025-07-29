@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import defaultUserIcon from '../default-user-icon.png';
-import '../../styles/master-style.css';
+import '../../relatime/styles/master-style.css';
 
 export default function AccountMenu() {
   const [isDark, setIsDark] = useState(false);
