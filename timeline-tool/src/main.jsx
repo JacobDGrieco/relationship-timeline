@@ -6,7 +6,7 @@ import Home from './relatime/components/Home.jsx';
 import AccountLogin from './accounts/components/AccountLogin.jsx';
 import AccountProjects from './accounts/components/AccountProjects.jsx';
 import AccountSettings from './accounts/components/AccountSettings.jsx';
-import { ProjectProvider } from './relatime/utils/projectContext.jsx';
+import { ProjectProvider } from './relatime/context/ProjectContext.jsx';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(

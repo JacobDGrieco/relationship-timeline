@@ -3,9 +3,6 @@ import { handleAddPerson } from "../../utils/nodeHelpers"
 export default function AddNodePopup({
   personName,
   setPersonName,
-  personSeries,
-  setPersonSeries,
-  SERIES_OPTIONS,
   networkRef,
   nodesRef,
   nodeDetails,
@@ -23,9 +20,9 @@ export default function AddNodePopup({
   setPartialStartIndex,
   partialEndIndex,
   setPartialEndIndex,
+  projectSettings
 }) {
 
-  //console.log("AddNodePopup props:", { applyMode, setApplyMode });
   // Build options for dropdowns
   const pastEvents = timelineEntries
     .map((entry, idx) => ({ idx, entry }))
@@ -43,19 +40,6 @@ export default function AddNodePopup({
         <h2>Add Node</h2>
         <label>Name</label>
         <input type="text" value={personName} onChange={(e) => setPersonName(e.target.value)} />
-        <label>Series</label>
-        <select
-          value={personSeries}
-          onChange={(e) => setPersonSeries(e.target.value)}
-          className="popup-dropdown"
-        >
-          <option value="">Select a series</option>
-          {SERIES_OPTIONS.map((series) => (
-            <option key={series} value={series}>
-              {series}
-            </option>
-          ))}
-        </select>
         <label>Apply To Snapshots</label>
         <select value={applyMode} onChange={(e) => setApplyMode(e.target.value)}>
           <option value="none">None</option>
@@ -96,12 +80,10 @@ export default function AddNodePopup({
           <button className="cancel" onClick={() => setShowAddPerson(false)}>Cancel</button>
           <button className="confirm" onClick={() => handleAddPerson({
             personName,
-            personSeries,
             nodesRef,
             setGraphData,
             setNodeDetails,
             setPersonName,
-            setPersonSeries,
             setConnectionLabel,
             setConnectionDirection,
             setApplyMode,
@@ -113,7 +95,8 @@ export default function AddNodePopup({
             partialStartIndex,
             partialEndIndex,
             networkRef,
-            nodeDetails
+            nodeDetails,
+            projectSettings
           })}>Add</button>
         </div>
       </div>

@@ -3,12 +3,10 @@ import { handleUpdateSnapshots } from "./timelineHelpers";
 
 export function handleAddPerson({
   personName,
-  personSeries,
   nodesRef,
   setGraphData,
   setNodeDetails,
   setPersonName,
-  setPersonSeries,
   setConnectionLabel,
   setConnectionDirection,
   setApplyMode,
@@ -20,16 +18,13 @@ export function handleAddPerson({
   partialStartIndex,
   partialEndIndex,
   networkRef,
-  nodeDetails
+  nodeDetails,
+  projectSettings
 }) {
   const id = generateUniqueID();
   const label = personName || `Node ${id}`;
 
-  const newNode = {
-    id,
-    label,
-  };
-
+  const newNode = { id, label };
   nodesRef.current.add(newNode);
 
   setGraphData(prev => ({
@@ -37,15 +32,35 @@ export function handleAddPerson({
     edges: [...prev.edges]
   }));
 
+  const baseDetails = {
+    name: personName
+  };
+
+  if (projectSettings?.length) {
+    for (const field of projectSettings) {
+      if (!(field?.id in baseDetails)) {
+        switch (field.type) {
+          case 'description':
+          case 'dropdown':
+            baseDetails[field.id] = '';
+            break;
+          case 'static-multiselect':
+          case 'dynamic-multiselect':
+            baseDetails[field.id] = [];
+            break;
+          case 'image-upload':
+            baseDetails[field.id] = null;
+            break;
+          default:
+            baseDetails[field.id] = '';
+        }
+      }
+    }
+  }
+
   setNodeDetails(prev => ({
     ...prev,
-    [id]: {
-      name: personName,
-      primarySeries: personSeries,
-      roles: [],
-      secondarySeries: [],
-      status: 'Alive',
-    },
+    [id]: baseDetails,
   }));
 
   handleUpdateSnapshots(newNode, 'node', {
@@ -60,7 +75,6 @@ export function handleAddPerson({
   });
 
   setPersonName('');
-  setPersonSeries('');
   setConnectionLabel('');
   setConnectionDirection('normal');
   setApplyMode('none');

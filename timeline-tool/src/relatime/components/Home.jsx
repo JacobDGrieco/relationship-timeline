@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 
 // Account Imports
 import AccountMenu from '../../accounts/components/AccountMenu.jsx';
-import { useProject } from '../utils/projectContext.jsx';
+import { useProject } from '../context/ProjectContext.jsx';
 
 // Component Imports
 import NetworkGraph from './NetworkGraph.jsx';
@@ -11,6 +11,7 @@ import TimelineTrack from './TimelineTrack.jsx';
 import NodeDetailsPanel from './NodeDetailsPanel.jsx';
 
 // Popup Imports
+import ProjectSettings from './popups/ProjectSettingsPopup.jsx';
 import AddConnectionPopup from './popups/AddConnectionPopup.jsx';
 import AddNodePopup from './popups/AddNodePopup.jsx';
 import AddTimelineEntryPopup from './popups/AddTimelineEntryPopup.jsx';
@@ -19,16 +20,10 @@ import TickContextMenu from './popups/TickContextMenu.jsx';
 
 // Helper Imports
 import ThemeToggleSlider from '../utils/themeHelper.jsx';
-import { handleUpdateSnapshots } from '../utils/timelineHelpers.jsx';
 import { saveProject } from '../../accounts/utils/SLDToCloud.jsx';
 
 // Style Import
 import '../styles/master-style.css';
-
-// Global Vars 
-const SERIES_OPTIONS = ["Series A", "Series B", "Series C"];
-const STATUS_OPTIONS = ["Alive", "Deceased", "Unknown"];
-
 
 export default function Home() {
   const {
@@ -38,7 +33,8 @@ export default function Home() {
     timelineEntries, setTimelineEntries,
     timelineStartDate, setTimelineStartDate,
     timelineEndDate, setTimelineEndDate,
-    snapshots, setSnapshots
+    snapshots, setSnapshots,
+    projectSettings, setProjectSettings
   } = useProject();
   const [currentProjectId, setCurrentProjectId] = useState(null);
   const [showTimelinePopup, setShowTimelinePopup] = useState(false);
@@ -50,9 +46,6 @@ export default function Home() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [showAddPerson, setShowAddPerson] = useState(false);
   const [personName, setPersonName] = useState("");
-  const [personSeries, setPersonSeries] = useState("");
-  const [availableRoles, setAvailableRoles] = useState([]);
-  const [availableSecondarySeries, setAvailableSecondarySeries] = useState(SERIES_OPTIONS);
   const [dropdownFilter, setDropdownFilter] = useState("");
   const [roleDropdownFilter, setRoleDropdownFilter] = useState("");
   const [showDropdown, setShowDropdown] = useState({ roles: false, secondarySeries: false });
@@ -77,9 +70,10 @@ export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('theme') === 'dark';
   });
-  const [applyMode, setApplyMode] = useState('none');  // none, forward, backward, full, partial
+  const [applyMode, setApplyMode] = useState('none');
   const [partialStartIndex, setPartialStartIndex] = useState(null);
   const [partialEndIndex, setPartialEndIndex] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   const containerRef = useRef();
   const networkRef = useRef();
@@ -93,6 +87,23 @@ export default function Home() {
     const storedId = localStorage.getItem('currentProjectId');
     if (storedId) setCurrentProjectId(storedId);
   }, []);
+
+  useEffect(() => {
+    if (!projectSettings.nodeFields || projectSettings.nodeFields.length === 0) {
+      setProjectSettings(prev => ({
+        ...prev,
+        nodeFields: [
+          {
+            id: 'description',
+            label: 'New Field',
+            type: 'description',
+            order: 0,
+          }
+        ]
+      }));
+    }
+  }, [projectSettings, setProjectSettings]);
+
 
   useEffect(() => {
     if (selectedNode && networkRef.current) {
@@ -158,6 +169,7 @@ export default function Home() {
                 timelineStartDate,
                 timelineEndDate,
                 snapshots,
+                customFields: customFields,
                 projectName: projectName || 'Untitled Project'
               },
               token,
@@ -165,6 +177,7 @@ export default function Home() {
             );
           }}
           >Save Project</button>
+          <button onClick={() => setShowSettings(true)}>Project Settings</button>
         </div>
         <div className="header-center">
           <button onClick={() => setShowAddPerson(true)} disabled={!graphMounted}>Add Node</button>
@@ -229,13 +242,22 @@ export default function Home() {
           </div>
         </div>
       </div>
+      {showSettings && (
+        <ProjectSettings
+          settings={projectSettings.nodeFields}
+          setSettings={(newFields) => {
+            setProjectSettings(prev => ({
+              ...prev,
+              nodeFields: newFields
+            }));
+          }}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
       {showAddPerson && (
         <AddNodePopup
           personName={personName}
           setPersonName={setPersonName}
-          personSeries={personSeries}
-          setPersonSeries={setPersonSeries}
-          SERIES_OPTIONS={SERIES_OPTIONS}
           networkRef={networkRef}
           nodesRef={nodesRef}
           setGraphData={setGraphData}
@@ -252,6 +274,7 @@ export default function Home() {
           setPartialStartIndex={setPartialStartIndex}
           partialEndIndex={partialEndIndex}
           setPartialEndIndex={setPartialEndIndex}
+          projectSettings={projectSettings}
         />
       )}
       {showAddConnection && (
@@ -314,12 +337,6 @@ export default function Home() {
           setIsDetailsVisible={setIsDetailsVisible}
           setJustClosedRecently={setJustClosedRecently}
           isDetailsVisible={isDetailsVisible}
-          SERIES_OPTIONS={SERIES_OPTIONS}
-          STATUS_OPTIONS={STATUS_OPTIONS}
-          availableRoles={availableRoles}
-          setAvailableRoles={setAvailableRoles}
-          availableSecondarySeries={availableSecondarySeries}
-          setAvailableSecondarySeries={setAvailableSecondarySeries}
         />
       ) : null}
       {showTimelinePopup && (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadProject, deleteProject } from '../utils/SLDToCloud.jsx';
-import { useProject } from '../../relatime/utils/projectContext.jsx';
+import { useProject } from '../../relatime/context/ProjectContext.jsx';
 import '../../relatime/styles/master-style.css';
 
 export default function AccountProjects() {

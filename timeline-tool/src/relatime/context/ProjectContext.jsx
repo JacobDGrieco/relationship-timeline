@@ -14,6 +14,9 @@ export function ProjectProvider({ children }) {
   const [timelineStartDate, setTimelineStartDate] = useState(defaultStart);
   const [timelineEndDate, setTimelineEndDate] = useState(defaultEnd);
   const [snapshots, setSnapshots] = useState([]);
+  const [projectSettings, setProjectSettings] = useState({
+    nodeFields: []
+  });
 
   const loadFromObject = (data) => {
     setProjectName(data.projectName || '');
@@ -23,6 +26,7 @@ export function ProjectProvider({ children }) {
     setTimelineStartDate(data.timelineStartDate || '');
     setTimelineEndDate(data.timelineEndDate || '');
     setSnapshots(data.snapshots || []);
+    setProjectSettings(data.projectSettings || []);
   };
 
   return (
@@ -34,6 +38,7 @@ export function ProjectProvider({ children }) {
       timelineStartDate, setTimelineStartDate,
       timelineEndDate, setTimelineEndDate,
       snapshots, setSnapshots,
+      projectSettings, setProjectSettings,
       loadFromObject
     }}>
       {children}
@@ -51,4 +56,5 @@ function loadAllProjectData(data) {
   setTimelineStartDate(data.timelineStartDate || '');
   setTimelineEndDate(data.timelineEndDate || '');
   setSnapshots(data.snapshots || []);
+  setProjectSettings(data.projectSettings || []);
 }
