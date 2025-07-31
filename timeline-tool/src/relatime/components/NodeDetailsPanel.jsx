@@ -119,6 +119,7 @@ export default function NodeDetailsPanel({
                                                 value={fieldValue || ''}
                                                 onChange={(e) => handleNodeFieldChange(selectedNode, field.id, e.target.value, setNodeDetails)}
                                             >
+                                                <option key="" value=""></option>
                                                 {field.options.map((opt) => (
                                                     <option key={opt} value={opt}>{opt}</option>
                                                 ))}

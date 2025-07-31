@@ -79,9 +79,13 @@ export default function ProjectSettings({ settings, setSettings, onClose }) {
                 {(field.type === 'dropdown' || field.type.includes('multiselect')) && (
                   <textarea
                     placeholder="Comma-separated options"
-                    value={field.options.join(', ')}
+                    value={(field.options || []).join(', ')}
                     onChange={e =>
-                      updateField(field.id, 'options', e.target.value.split(',').map(opt => opt.trim()))
+                      updateField(
+                        field.id,
+                        'options',
+                        e.target.value.split(',').map(opt => opt.trim())
+                      )
                     }
                   />
                 )}
