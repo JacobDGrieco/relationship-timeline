@@ -333,7 +333,7 @@ export default function Home() {
           nodeDetails={nodeDetails}
           setNodeDetails={setNodeDetails}
           networkRef={networkRef}
-          nodesRed={nodesRef}
+          nodesRef={nodesRef}
           setIsDetailsVisible={setIsDetailsVisible}
           setJustClosedRecently={setJustClosedRecently}
           isDetailsVisible={isDetailsVisible}

@@ -91,38 +91,37 @@ export function handleNodeFieldChange(nodeId, field, value, setNodeDetails) {
   }));
 }
 
-export function handleImageUpload(nodesRef, nodeId, file, setNodeDetails, setGraphData) {
-  if (!file || !(file instanceof Blob)) {
-    console.error("Invalid file passed to handleImageUpload:", file);
-    return;
-  }
+export function handleImageUpload(
+  nodesRef,
+  selectedNode,
+  file,
+  setNodeDetails,
+  setGraphData
+) {
+  if (!file || !selectedNode) return;
 
   const reader = new FileReader();
-  reader.onloadend = () => {
-    const image = reader.result;
+  reader.onload = function (e) {
+    const imageData = e.target.result;
 
-    setNodeDetails((prev) => ({
+    setNodeDetails(prev => ({
       ...prev,
-      [nodeId]: {
-        ...prev[nodeId],
-        image,
-      },
+      [selectedNode]: {
+        ...prev[selectedNode],
+        image: imageData,
+      }
     }));
 
-    setGraphData((prev) => ({
-      nodes: prev.nodes.map((n) =>
-        n.id === nodeId ? { ...n, shape: 'circularImage', image } : n
-      ),
-      edges: prev.edges,
-    }));
-
-    if (nodesRef?.current) {
-      nodesRef.current.update({
-        id: nodeId,
-        shape: 'circularImage',
-        image,
+    // Update the graphData to reflect the image change
+    setGraphData(prev => {
+      const updatedNodes = prev.nodes.map(node => {
+        if (node.id === selectedNode) {
+          return { ...node, shape: "circularImage", image: imageData };
+        }
+        return node;
       });
-    }
+      return { ...prev, nodes: updatedNodes };
+    });
   };
 
   reader.readAsDataURL(file);

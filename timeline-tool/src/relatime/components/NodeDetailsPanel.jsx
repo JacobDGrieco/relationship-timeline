@@ -19,7 +19,6 @@ export default function NodeDetailsPanel({
 
     const data = nodeDetails[selectedNode] || {};
     if (!selectedNode) return null;
-    console.log('projectSettings.nodeFields:', projectSettings?.nodeFields);
 
     return (
         <div className={`slide-pane ${isDetailsVisible ? 'visible' : 'hidden'}`}>
@@ -99,6 +98,7 @@ export default function NodeDetailsPanel({
                                                         className="file-upload-input"
                                                         accept="image/*"
                                                         onChange={(e) => handleImageUpload(
+                                                            nodesRef,
                                                             selectedNode,
                                                             e.target.files[0],
                                                             setNodeDetails,
