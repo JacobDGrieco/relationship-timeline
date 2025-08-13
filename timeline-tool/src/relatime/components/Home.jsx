@@ -104,7 +104,6 @@ export default function Home() {
     }
   }, [projectSettings, setProjectSettings]);
 
-
   useEffect(() => {
     if (selectedNode && networkRef.current) {
       networkRef.current.selectNodes([selectedNode]);
@@ -245,12 +244,9 @@ export default function Home() {
       {showSettings && (
         <ProjectSettings
           settings={projectSettings.nodeFields}
-          setSettings={(newFields) => {
-            setProjectSettings(prev => ({
-              ...prev,
-              nodeFields: newFields
-            }));
-          }}
+          setSettings={(newFields) =>
+            setProjectSettings(prev => ({ ...prev, nodeFields: newFields }))
+          }
           onClose={() => setShowSettings(false)}
         />
       )}

@@ -181,11 +181,34 @@ export function getDynamicSuggestions(field, nodeDetails, selectedValues = [], f
 
 // --- Keyboard helper ---
 
-// On Enter in a dynamic input, add the input's value to the array field.
-export function handleEnterAddToArrayField(e, { nodeId, fieldId, setNodeDetails }) {
+// On Enter in a dynamic input, add the value and fire optional afterAdd callback.
+export function handleEnterAddToArrayField(e, { nodeId, fieldId, setNodeDetails, afterAdd }) {
   if (e.key !== 'Enter') return;
+
   e.preventDefault();
-  const val = e.currentTarget.value;
+  const raw = e.currentTarget.value;
+  const val = (raw ?? '').trim();
+  if (!val) return;
+
   addValueToArrayField({ nodeId, fieldId, value: val, setNodeDetails });
+  if (typeof afterAdd === 'function') afterAdd(val);
   e.currentTarget.value = '';
+}
+
+// Persist a value into projectSettings.nodeFields[*].options (idempotent)
+export function promoteOptionToProjectSettings(setProjectSettings, fieldId, value) {
+  const v = (value ?? '').trim();
+  if (!v) return;
+
+  setProjectSettings(prev => {
+    if (!prev?.nodeFields) return prev;
+    const nodeFields = prev.nodeFields.map(f => {
+      if (f.id !== fieldId) return f;
+      const opts = Array.isArray(f.options) ? f.options : [];
+      if (opts.includes(v)) return f;
+      const next = Array.from(new Set([...opts, v])).sort((a, b) => a.localeCompare(b));
+      return { ...f, options: next };
+    });
+    return { ...prev, nodeFields };
+  });
 }

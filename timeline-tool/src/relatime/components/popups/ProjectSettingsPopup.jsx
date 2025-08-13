@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import '../../styles/master-style.css'
 
@@ -12,6 +12,10 @@ const fieldTypes = [
 
 export default function ProjectSettings({ settings, setSettings, onClose }) {
   const [fields, setFields] = useState(settings || []);
+
+  useEffect(() => {
+    setFields(settings || []);
+  }, [settings]);
 
   const addField = () => {
     const newField = {
@@ -58,7 +62,7 @@ export default function ProjectSettings({ settings, setSettings, onClose }) {
         <h2>Project Settings - Node Fields</h2>
         <ul>
           {fields
-            .sort((a, b) => a.order - b.order)
+            .slice().sort((a, b) => a.order - b.order)
             .map((field, idx) => (
               <li key={idx} className="field-item">
                 <input
@@ -69,8 +73,16 @@ export default function ProjectSettings({ settings, setSettings, onClose }) {
                 />
                 <select
                   value={field.type}
-                  onChange={e => updateField(field.id, 'type', e.target.value)}
-                >
+                  onChange={e => {
+                    const nextType = e.target.value;
+                    updateField(field.id, 'type', nextType);
+                    if (nextType === 'dropdown' || nextType.includes('multiselect')) {
+                      // ensure options exists
+                      if (!Array.isArray(field.options)) {
+                        updateField(field.id, 'options', []);
+                      }
+                    }
+                  }}>
                   {fieldTypes.map(type => (
                     <option key={type} value={type}>{type}</option>
                   ))}
@@ -79,14 +91,15 @@ export default function ProjectSettings({ settings, setSettings, onClose }) {
                 {(field.type === 'dropdown' || field.type.includes('multiselect')) && (
                   <textarea
                     placeholder="Comma-separated options"
-                    value={(field.options || []).join(', ')}
-                    onChange={e =>
-                      updateField(
-                        field.id,
-                        'options',
-                        e.target.value.split(',').map(opt => opt.trim())
-                      )
-                    }
+                    value={Array.isArray(field.options) ? field.options.join(', ') : ''}
+                    onChange={e => {
+                      const arr = e.target.value
+                        .split(',')
+                        .map(s => s.trim())
+                        .filter(Boolean);                 // remove empties
+                      const deduped = Array.from(new Set(arr));
+                      updateField(field.id, 'options', deduped);
+                    }}
                   />
                 )}
 
@@ -102,6 +115,6 @@ export default function ProjectSettings({ settings, setSettings, onClose }) {
           <button className="confirm" onClick={handleSave}>Save</button>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
