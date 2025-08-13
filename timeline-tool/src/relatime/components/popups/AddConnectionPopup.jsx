@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { handleAddConnection } from "../../utils/graphHelpers"
 
 export default function AddConnectionPopup({
@@ -27,6 +28,13 @@ export default function AddConnectionPopup({
     partialEndIndex,
     setPartialEndIndex
 }) {
+    const nodeNameOptions = useMemo(() => {
+        const names = Object.values(nodeDetails || {})
+            .map(nd => (nd?.name || "").trim())
+            .filter(Boolean);
+        return Array.from(new Set(names)).sort((a, b) => a.localeCompare(b));
+    }, [nodeDetails]);
+
     // Build options for dropdowns
     const pastEvents = timelineEntries
         .map((entry, idx) => ({ idx, entry }))
@@ -42,20 +50,32 @@ export default function AddConnectionPopup({
         <div className="popup-overlay">
             <div className="popup">
                 <h2>Add Connection</h2>
-                <label>Source Name</label>
-                <input
-                    type="text"
-                    value={connectionSource}
-                    onChange={(e) => setConnectionSource(e.target.value)}
-                    placeholder="Enter source node name"
-                />
-                <label>Target Name</label>
-                <input
-                    type="text"
-                    value={connectionTarget}
-                    onChange={(e) => setConnectionTarget(e.target.value)}
-                    placeholder="Enter target node name"
-                />
+                <div className="two-col">
+                    <div className="field">
+                        <label>Source Name</label>
+                        <select
+                            value={connectionSource || ''}
+                            onChange={(e) => setConnectionSource(e.target.value)}
+                        >
+                            <option key="" value=""></option>
+                            {nodeNameOptions.map((opt) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="field">
+                        <label>Target Name</label>
+                        <select
+                            value={connectionTarget || ''}
+                            onChange={(e) => setConnectionTarget(e.target.value)}
+                        >
+                            <option key="" value=""></option>
+                            {nodeNameOptions.map((opt) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
                 <label>Connection Name (Label)</label>
                 <input
                     type="text"
@@ -64,7 +84,7 @@ export default function AddConnectionPopup({
                     placeholder="Optional label"
                 />
                 <label>Direction</label>
-                <div className="connection-direction">
+                <div className="connection-direction buttons">
                     {['normal', 'reverse', 'both', 'none'].map((dir) => (
                         <label key={dir} className="direction-option">
                             <input
@@ -78,7 +98,7 @@ export default function AddConnectionPopup({
                     ))}
                 </div>
                 <label>Connection Level</label>
-                <div className="connection-level">
+                <div className="connection-level buttons">
                     {[
                         { value: 1, label: "Normal" },
                         { value: 2, label: "Strong" },
@@ -103,34 +123,36 @@ export default function AddConnectionPopup({
                     <option value="full">Full (All Snapshots)</option>
                     <option value="partial">Partial Range</option>
                 </select>
-                {applyMode === 'partial' && (
-                    <>
-                        <label>Earliest Event</label>
-                        <select
-                            value={partialStartIndex ?? ""}
-                            onChange={(e) => setPartialStartIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
-                        >
-                            <option value="">--</option>
-                            {pastEvents.map(({ idx, entry }) => (
-                                <option key={idx} value={idx}>
-                                    onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
-                                </option>
-                            ))}
-                        </select>
-                        <label>Latest Event</label>
-                        <select
-                            value={partialEndIndex ?? ""}
-                            onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
-                        >
-                            <option value="">--</option>
-                            {futureEvents.map(({ idx, entry }) => (
-                                <option key={idx} value={idx}>
-                                    onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
-                                </option>
-                            ))}
-                        </select>
-                    </>
-                )}
+                {
+                    applyMode === 'partial' && (
+                        <>
+                            <label>Earliest Event</label>
+                            <select
+                                value={partialStartIndex ?? ""}
+                                onChange={(e) => setPartialStartIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
+                            >
+                                <option value="">--</option>
+                                {pastEvents.map(({ idx, entry }) => (
+                                    <option key={idx} value={idx}>
+                                        onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
+                                    </option>
+                                ))}
+                            </select>
+                            <label>Latest Event</label>
+                            <select
+                                value={partialEndIndex ?? ""}
+                                onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
+                            >
+                                <option value="">--</option>
+                                {futureEvents.map(({ idx, entry }) => (
+                                    <option key={idx} value={idx}>
+                                        onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
+                                    </option>
+                                ))}
+                            </select>
+                        </>
+                    )
+                }
                 <div className="actions">
                     <button className="cancel" onClick={() => setShowAddConnection(false)}>Cancel</button>
                     <button className="confirm" onClick={() => handleAddConnection({
@@ -158,7 +180,7 @@ export default function AddConnectionPopup({
                         partialEndIndex
                     })}>Add</button>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     )
 }
