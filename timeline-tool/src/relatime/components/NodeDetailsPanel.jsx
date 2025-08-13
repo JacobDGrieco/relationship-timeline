@@ -1,6 +1,14 @@
 import { useState, useRef } from 'react';
 import { useProject } from '../context/ProjectContext.jsx';
-import { handleRoleKeyDown, handleImageUpload, handleNodeFieldChange, handleRemoveValue, addSuggestion } from "../utils/nodeHelpers";
+import {
+    handleImageUpload,
+    handleNodeFieldChange,
+    addValueToArrayField,
+    removeValueFromArrayField,
+    getStaticSuggestions,
+    getDynamicSuggestions,
+    handleEnterAddToArrayField,
+} from "../utils/nodeHelpers";
 
 export default function NodeDetailsPanel({
     setGraphData,
@@ -16,10 +24,29 @@ export default function NodeDetailsPanel({
     const { projectSettings } = useProject();
     const [isEditingName, setIsEditingName] = useState(false);
     const [showDropdown, setShowDropdown] = useState({});
+    const [filterByField, setFilterByField] = useState({});
+    const inputRefs = useRef({});
 
     const data = nodeDetails[selectedNode] || {};
     if (!selectedNode) return null;
 
+    const ensureRef = (fieldId) => {
+        if (!inputRefs.current[fieldId]) {
+            inputRefs.current[fieldId] = { current: null };
+        }
+        return (el) => { inputRefs.current[fieldId].current = el; };
+    };
+
+    const setFieldFilter = (fieldId, value) =>
+        setFilterByField(prev => ({ ...prev, [fieldId]: value }));
+
+    const openDropdown = (fieldId) =>
+        setShowDropdown(prev => ({ ...prev, [fieldId]: true }));
+
+    const closeDropdownSoon = (fieldId) =>
+        setTimeout(() => setShowDropdown(prev => ({ ...prev, [fieldId]: false })), 150);
+
+    
     return (
         <div className={`slide-pane ${isDetailsVisible ? 'visible' : 'hidden'}`}>
             <button
@@ -126,123 +153,110 @@ export default function NodeDetailsPanel({
                                             </select>
                                         </div>
                                     );
-                                case 'static-multiselect':
+                                case 'static-multiselect': {
+                                    const selected = data[field.id] || [];
+                                    const suggestions = getStaticSuggestions(field, selected, filterByField[field.id] || '');
+
                                     return (
                                         <div className="details-row" key={field.id}>
                                             <label className="details-label">{field.label}</label>
                                             <div className="details-input relative">
                                                 <input
-                                                    ref={secondaryInputRef}
+                                                    ref={ensureRef(field.id)}
                                                     type="text"
-                                                    placeholder={`Select a ${field.label}`}
+                                                    placeholder={`Select ${field.label}`}
                                                     onChange={(e) => {
-                                                        setDropdownFilter(e.target.value);
-                                                        setShowDropdown(prev => ({ ...prev, [field.id]: true }));
+                                                        setFieldFilter(field.id, e.target.value);
+                                                        openDropdown(field.id);
                                                     }}
-                                                    onFocus={() => setShowDropdown(prev => ({ ...prev, [field.id]: true }))}
-                                                    onBlur={() => setTimeout(() => setShowDropdown(prev => ({ ...prev, [field.id]: false })), 150)}
+                                                    onFocus={() => openDropdown(field.id)}
+                                                    onBlur={() => closeDropdownSoon(field.id)}
                                                     className="w-full border rounded p-1"
                                                 />
-                                                {showDropdown[field.id] && filteredSecondarySeries.length > 0 && (
+                                                {showDropdown[field.id] && suggestions.length > 0 && (
                                                     <div className="dropdown-list">
-                                                        {filteredSecondarySeries.map((option) => (
+                                                        {suggestions.map(opt => (
                                                             <div
-                                                                key={option}
+                                                                key={opt}
                                                                 className="dropdown-item"
-                                                                onMouseDown={() => addSuggestion({
-                                                                    field: field.id,
-                                                                    value: option,
-                                                                    available: availableSecondarySeries,
-                                                                    setter: () => { },
-                                                                    nodeDetails,
-                                                                    selectedNode,
-                                                                    setNodeDetails,
-                                                                    handleNodeFieldChange,
-                                                                    setDropdownFilter,
-                                                                    secondaryInputRef,
-                                                                    roleInputRef,
-                                                                })}
-                                                            >{option}</div>
+                                                                onMouseDown={() => {
+                                                                    addValueToArrayField({ nodeId: selectedNode, fieldId: field.id, value: opt, setNodeDetails });
+                                                                    setFieldFilter(field.id, '');
+                                                                    inputRefs.current[field.id]?.current && (inputRefs.current[field.id].current.value = '');
+                                                                    setShowDropdown(prev => ({ ...prev, [field.id]: false }));
+                                                                }}
+                                                            >
+                                                                {opt}
+                                                            </div>
                                                         ))}
                                                     </div>
                                                 )}
                                                 <div className="tag-container">
-                                                    {(fieldValue || []).map((val) => (
+                                                    {selected.map(val => (
                                                         <span
-                                                            className="tag cursor-pointer"
                                                             key={val}
-                                                            onClick={() => handleRemoveValue(
-                                                                field.id,
-                                                                val,
-                                                                availableSecondarySeries,
-                                                                () => { },
-                                                                nodeDetails,
-                                                                selectedNode,
-                                                                setNodeDetails
-                                                            )}
-                                                        >{val}</span>
+                                                            className="tag cursor-pointer"
+                                                            onClick={() => removeValueFromArrayField({ nodeId: selectedNode, fieldId: field.id, value: val, setNodeDetails })}
+                                                        >
+                                                            {val}
+                                                        </span>
                                                     ))}
                                                 </div>
                                             </div>
                                         </div>
                                     );
-                                case 'dynamic-multiselect':
+                                }
+                                case 'dynamic-multiselect': {
+                                    const selected = data[field.id] || [];
+                                    const suggestions = getDynamicSuggestions(field, nodeDetails, selected, filterByField[field.id] || '');
+
                                     return (
                                         <div className="details-row" key={field.id}>
                                             <label className="details-label">{field.label}</label>
                                             <div className="details-input relative">
                                                 <input
-                                                    ref={roleInputRef}
+                                                    ref={ensureRef(field.id)}
                                                     type="text"
-                                                    placeholder={`Type and press Enter`}
-                                                    onKeyDown={(e) => handleRoleKeyDown(
-                                                        e,
-                                                        field.id,
-                                                        () => { },
-                                                        nodeDetails,
-                                                        selectedNode,
-                                                        setNodeDetails,
-                                                        handleNodeFieldChange,
-                                                        [],
-                                                        setRoleDropdownFilter,
-                                                        setShowDropdown,
-                                                        roleInputRef,
-                                                    )}
-                                                    onChange={(e) => {
-                                                        setRoleDropdownFilter(e.target.value);
-                                                        setShowDropdown(prev => ({ ...prev, [field.id]: true }));
-                                                    }}
-                                                    onFocus={() => setShowDropdown(prev => ({ ...prev, [field.id]: true }))}
-                                                    onBlur={() => setTimeout(() => setShowDropdown(prev => ({ ...prev, [field.id]: false })), 150)}
+                                                    placeholder="Type and press Enter"
+                                                    onKeyDown={(e) => handleEnterAddToArrayField(e, { nodeId: selectedNode, fieldId: field.id, setNodeDetails })}
+                                                    onChange={(e) => { setFieldFilter(field.id, e.target.value); openDropdown(field.id); }}
+                                                    onFocus={() => openDropdown(field.id)}
+                                                    onBlur={() => closeDropdownSoon(field.id)}
                                                     className="w-full border rounded p-1"
                                                 />
-                                                {showDropdown[field.id] && filteredRoles.length > 0 && (
+                                                {showDropdown[field.id] && suggestions.length > 0 && (
                                                     <div className="dropdown-list">
-                                                        {filteredRoles.map((option) => (
-                                                            <div className="dropdown-item" key={option}><span>{option}</span></div>
+                                                        {suggestions.map(opt => (
+                                                            <div
+                                                                key={opt}
+                                                                className="dropdown-item"
+                                                                onMouseDown={() => {
+                                                                    addValueToArrayField({ nodeId: selectedNode, fieldId: field.id, value: opt, setNodeDetails });
+                                                                    setFieldFilter(field.id, '');
+                                                                    inputRefs.current[field.id]?.current && (inputRefs.current[field.id].current.value = '');
+                                                                    setShowDropdown(prev => ({ ...prev, [field.id]: false }));
+                                                                }}
+                                                            >
+                                                                {opt}
+                                                            </div>
                                                         ))}
                                                     </div>
                                                 )}
                                                 <div className="tag-container">
-                                                    {(fieldValue || []).map((val) => (
+                                                    {selected.map(val => (
                                                         <span
-                                                            className="tag cursor-pointer"
                                                             key={val}
-                                                            onClick={() => handleRemoveValue(
-                                                                field.id,
-                                                                val,
-                                                                [],
-                                                                () => { },
-                                                                nodeDetails,
-                                                                selectedNode,
-                                                                setNodeDetails
-                                                            )}
-                                                        >{val}</span>
+                                                            className="tag cursor-pointer"
+                                                            onClick={() => removeValueFromArrayField({ nodeId: selectedNode, fieldId: field.id, value: val, setNodeDetails })}
+                                                        >
+                                                            {val}
+                                                        </span>
                                                     ))}
                                                 </div>
                                             </div>
                                         </div>
                                     );
+                                }
                                 default:
                                     return null;
                             }

@@ -127,111 +127,65 @@ export function handleImageUpload(
   reader.readAsDataURL(file);
 }
 
-export function handleRoleKeyDown(
-  e,
-  field,
-  availableSetter,
-  nodeDetails,
-  selectedNode,
-  setNodeDetails,
-  handleNodeFieldChange,
-  availableRoles,
-  setRoleDropdownFilter,
-  setShowDropdown,
-  roleInputRef,
-) {
-  if (e.key === 'Enter' && e.target.value.trim()) {
-    const newValue = e.target.value.trim();
-    const updated = [...new Set([...(nodeDetails[selectedNode]?.[field] || []), newValue])];
-
-    handleNodeFieldChange(selectedNode, field, updated, setNodeDetails);
-
-    if (!availableRoles.includes(newValue)) {
-      const updatedRoles = [...availableRoles, newValue].sort((a, b) => a.localeCompare(b));
-      availableSetter(updatedRoles);
-    }
-
-    setRoleDropdownFilter('');
-    setShowDropdown(prev => ({ ...prev, roles: false }));
-    if (roleInputRef.current) roleInputRef.current.blur();
-
-
-    e.target.value = '';
-    e.preventDefault();
-  }
+export function addValueToArrayField({ nodeId, fieldId, value, setNodeDetails }) {
+  const v = (value ?? '').trim();
+  if (!v) return;
+  setNodeDetails(prev => {
+    const current = prev[nodeId]?.[fieldId] || [];
+    if (current.includes(v)) return prev;
+    return {
+      ...prev,
+      [nodeId]: {
+        ...prev[nodeId],
+        [fieldId]: [...current, v]
+      }
+    };
+  });
 }
 
-
-export function handleRemoveValue(
-  field,
-  value,
-  available,
-  availableSetter,
-  nodeDetails,
-  selectedNode,
-  setNodeDetails
-) {
-  const current = nodeDetails[selectedNode]?.[field] || [];
-  const updated = current.filter(item => item !== value);
-  const updatedNodeDetails = {
-    ...nodeDetails,
-    [selectedNode]: {
-      ...nodeDetails[selectedNode],
-      [field]: updated
-    }
-  };
-
-  setNodeDetails(updatedNodeDetails);
-
-  if (field === 'roles') {
-    const stillUsed = Object.values(updatedNodeDetails).some(details =>
-      (details.roles || []).includes(value)
-    );
-    if (!stillUsed) {
-      availableSetter(prev => prev.filter(item => item !== value));
-    }
-  }
+// Remove a value from an array-typed node field.
+export function removeValueFromArrayField({ nodeId, fieldId, value, setNodeDetails }) {
+  setNodeDetails(prev => {
+    const current = prev[nodeId]?.[fieldId] || [];
+    return {
+      ...prev,
+      [nodeId]: {
+        ...prev[nodeId],
+        [fieldId]: current.filter(x => x !== value)
+      }
+    };
+  });
 }
 
-export function addSuggestion({
-  field,
-  value,
-  available,
-  setter,
-  nodeDetails,
-  selectedNode,
-  setNodeDetails,
-  handleNodeFieldChange,
-  setDropdownFilter,
-  setRoleDropdownFilter,
-  setShowDropdown,
-  secondaryInputRef,
-  roleInputRef,
-}) {
-  if (!value.trim()) return;
+// --- Suggestions ---
 
-  const current = nodeDetails[selectedNode]?.[field] || [];
-  if (current.includes(value)) return;
+// For static-multiselect: suggest from field.options (minus already-selected), filtered.
+export function getStaticSuggestions(field, selectedValues = [], filterText = '') {
+  const f = (filterText || '').toLowerCase();
+  const selected = new Set(selectedValues);
+  return (field.options || [])
+    .filter(opt => opt.toLowerCase().includes(f) && !selected.has(opt));
+}
 
-  handleNodeFieldChange(selectedNode, field, [...current, value], setNodeDetails);
+// For dynamic-multiselect: union of field.options + values seen across all nodes for this field.
+export function getDynamicSuggestions(field, nodeDetails, selectedValues = [], filterText = '') {
+  const f = (filterText || '').toLowerCase();
+  const selected = new Set(selectedValues);
+  const fromOptions = field.options || [];
+  const fromNodes = Array.from(
+    new Set(Object.values(nodeDetails).flatMap(nd => (nd?.[field.id] || [])))
+  );
+  return Array.from(new Set([...fromOptions, ...fromNodes]))
+    .filter(opt => opt.toLowerCase().includes(f) && !selected.has(opt));
+}
 
-  if (!available.includes(value)) {
-    const updated = [...available, value];
-    if (field === 'roles') {
-      updated.sort((a, b) => a.localeCompare(b));
-    }
-    setter(updated);
-  }
+// --- Keyboard helper ---
 
-  if (field === "secondarySeries") {
-    setDropdownFilter("");
-    setShowDropdown((prev) => ({ ...prev, secondarySeries: false }));
-    if (secondaryInputRef.current) secondaryInputRef.current.value = "";
-  }
-
-  if (field === "roles") {
-    setRoleDropdownFilter("");
-    setShowDropdown((prev) => ({ ...prev, roles: false }));
-    if (roleInputRef.current) roleInputRef.current.value = "";
-  }
+// On Enter in a dynamic input, add the input's value to the array field.
+export function handleEnterAddToArrayField(e, { nodeId, fieldId, setNodeDetails }) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const val = e.currentTarget.value;
+  addValueToArrayField({ nodeId, fieldId, value: val, setNodeDetails });
+  e.currentTarget.value = '';
 }
