@@ -1,9 +1,9 @@
 .slide-pane {
   position: absolute;
-  top: 10px;
+  top: 5px;
   right: 7px;
   width: 375px;
-  height: 96%;
+  height: 95%;
   background: white;
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;

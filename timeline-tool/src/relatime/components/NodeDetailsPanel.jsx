@@ -17,9 +17,9 @@ export default function NodeDetailsPanel({
     setNodeDetails,
     networkRef,
     nodesRef,
+    isDetailsVisible,
     setIsDetailsVisible,
-    setJustClosedRecently,
-    isDetailsVisible
+    setJustClosedRecently
 }) {
     const { projectSettings, setProjectSettings } = useProject();
     const [isClosing, setIsClosing] = useState(false);

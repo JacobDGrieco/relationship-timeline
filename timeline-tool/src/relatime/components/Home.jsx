@@ -193,6 +193,19 @@ export default function Home() {
         <div className="top-section">
           <div className="network-area">
             <div id="network-container" ref={containerRef}></div>
+            {(isDetailsVisible || justClosedRecently) ? (
+              <NodeDetailsPanel
+                setGraphData={setGraphData}
+                selectedNode={selectedNode}
+                nodeDetails={nodeDetails}
+                setNodeDetails={setNodeDetails}
+                networkRef={networkRef}
+                nodesRef={nodesRef}
+                isDetailsVisible={isDetailsVisible}
+                setIsDetailsVisible={setIsDetailsVisible}
+                setJustClosedRecently={setJustClosedRecently}
+              />
+            ) : null}
           </div>
         </div>
         <div className="bottom-section">
@@ -303,8 +316,6 @@ export default function Home() {
           setPartialEndIndex={setPartialEndIndex}
         />
       )}
-
-
       {showEdgePopup && selectedEdgeId && (
         <ConnectionContextMenu
           edgePopupPosition={edgePopupPosition}
@@ -322,19 +333,6 @@ export default function Home() {
           nodeDetails={nodeDetails}
         />
       )}
-      {(isDetailsVisible || justClosedRecently) ? (
-        <NodeDetailsPanel
-          setGraphData={setGraphData}
-          selectedNode={selectedNode}
-          nodeDetails={nodeDetails}
-          setNodeDetails={setNodeDetails}
-          networkRef={networkRef}
-          nodesRef={nodesRef}
-          setIsDetailsVisible={setIsDetailsVisible}
-          setJustClosedRecently={setJustClosedRecently}
-          isDetailsVisible={isDetailsVisible}
-        />
-      ) : null}
       {showTimelinePopup && (
         <AddTimelineEntryPopup
           entryText={entryText}
