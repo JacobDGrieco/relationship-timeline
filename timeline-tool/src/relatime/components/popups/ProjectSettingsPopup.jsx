@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import DropdownOptionsPopup from './DropdownOptionsPopup.jsx';
 import '../../styles/master-style.css'
 
 const fieldTypes = [
@@ -12,6 +13,8 @@ const fieldTypes = [
 
 export default function ProjectSettings({ settings, setSettings, onClose }) {
   const [fields, setFields] = useState(settings || []);
+  const [editingField, setEditingField] = useState(null); // {id,label,type,options}
+  const [closingOptions, setClosingOptions] = useState(false);
 
   useEffect(() => {
     setFields(settings || []);
@@ -56,9 +59,28 @@ export default function ProjectSettings({ settings, setSettings, onClose }) {
     onClose();
   };
 
+  const closeOptionsPopup = () => {
+    setClosingOptions(true);
+    setTimeout(() => {
+      setClosingOptions(false);
+      setEditingField(null);
+    }, 300); // match animation duration
+  };
+
   return (
-    <div className="popup-overlay">
-      <div className="popup" onClick={(e) => e.stopPropagation()} style={{ width: '800px', maxWidth: '90%' }}>
+    <div
+      className="popup-overlay"
+      onClick={() => {
+        // Clicking the dim backdrop:
+        if (editingField) closeOptionsPopup();  // close side editor first
+        else onClose();                           // otherwise close settings
+      }}
+    >
+      <div
+        className={`popup ${editingField ? closingOptions ? 'slide-right' : 'slide-left' : ''}`}
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: '800px', maxWidth: '90%' }}
+      >
         <h2>Project Settings - Node Fields</h2>
         <ul>
           {fields
@@ -89,18 +111,20 @@ export default function ProjectSettings({ settings, setSettings, onClose }) {
                 </select>
 
                 {(field.type === 'dropdown' || field.type.includes('multiselect')) && (
-                  <textarea
-                    placeholder="Comma-separated options"
-                    value={Array.isArray(field.options) ? field.options.join(', ') : ''}
-                    onChange={e => {
-                      const arr = e.target.value
-                        .split(',')
-                        .map(s => s.trim())
-                        .filter(Boolean);                 // remove empties
-                      const deduped = Array.from(new Set(arr));
-                      updateField(field.id, 'options', deduped);
-                    }}
-                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+                    <button type="button" onClick={() => setEditingField(field)} style={{whiteSpace: 'nowrap', fontSize: '75%'}}>
+                      Edit options
+                    </button>
+                    <span style={{ opacity: 0.7, fontSize: 12 }}>
+                      {Array.isArray(field.options)
+                        ? field.options.length === 0
+                          ? 'No options'
+                          : field.options.length === 1
+                            ? '1 option'
+                            : `${field.options.length} options`
+                        : 'No options'}
+                    </span>
+                  </div>
                 )}
 
                 <button onClick={() => moveField(field.id, 'up')}>↑</button>
@@ -115,6 +139,18 @@ export default function ProjectSettings({ settings, setSettings, onClose }) {
           <button className="confirm" onClick={handleSave}>Save</button>
         </div>
       </div>
+
+      {editingField && (
+        <DropdownOptionsPopup
+          field={editingField}
+          className={closingOptions ? 'slide-out' : 'slide-in'}
+          onClose={closeOptionsPopup}
+          onSave={(nextOptions) => {
+            updateField(editingField.id, 'options', nextOptions);
+            closeOptionsPopup();
+          }}
+        />
+      )}
     </div >
   );
 };
