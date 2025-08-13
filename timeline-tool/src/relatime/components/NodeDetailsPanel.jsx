@@ -22,6 +22,7 @@ export default function NodeDetailsPanel({
     isDetailsVisible
 }) {
     const { projectSettings, setProjectSettings } = useProject();
+    const [isClosing, setIsClosing] = useState(false);
     const [isEditingName, setIsEditingName] = useState(false);
     const [showDropdown, setShowDropdown] = useState({});
     const [filterByField, setFilterByField] = useState({});
@@ -61,12 +62,17 @@ export default function NodeDetailsPanel({
 
 
     return (
-        <div className={`slide-pane ${isDetailsVisible ? 'visible' : 'hidden'}`}>
+        <div className={['slide-pane', isDetailsVisible && !isClosing ? 'slide-in' : '', isClosing ? 'slide-out' : ''].join(' ').trim()}>
             <button
                 className="close-details-button"
                 onClick={() => {
-                    setIsDetailsVisible(false);
-                    setTimeout(() => setJustClosedRecently(false), 300);
+                    if (isClosing) return;     
+                    setIsClosing(true);
+                    setTimeout(() => {
+                        setIsClosing(false);
+                        setIsDetailsVisible(false);
+                        setJustClosedRecently(false);
+                    }, 300);
                 }}
             >×</button>
             <div className="details-header">

@@ -1,6 +1,6 @@
 .slide-pane {
   position: absolute;
-  top: 5px;
+  top: 10px;
   right: 7px;
   width: 375px;
   height: 96%;
@@ -15,12 +15,42 @@
 
 .slide-pane.hidden {
   pointer-events: none;
-  opacity: 0;
 }
 
 .slide-pane.visible {
   pointer-events: auto;
+  transform: translateX(0);
   opacity: 1;
+}
+
+@keyframes paneInRight {
+  0% {
+    transform: translateX(40%);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes paneOutRight {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(40%);
+    opacity: 0;
+  }
+}
+
+.slide-pane.slide-in {
+  animation: paneInRight 0.3s ease forwards;
+}
+.slide-pane.slide-out {
+  animation: paneOutRight 0.3s ease forwards;
 }
 
 .close-details-button {

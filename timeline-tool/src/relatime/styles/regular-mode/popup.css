@@ -108,7 +108,6 @@
     opacity: 0.6;
   }
 }
-
 @keyframes slideInRight {
   0% {
     transform: translateX(40%);
@@ -134,7 +133,6 @@
     opacity: 1;
   }
 }
-
 @keyframes slideOutRight {
   0% {
     transform: translateX(0);
@@ -152,7 +150,6 @@
 .popup.slide-left {
   animation: slideLeft 0.3s ease forwards;
 }
-
 .popup.slide-right {
   animation: slideRight 0.5s ease forwards;
 }
@@ -160,7 +157,6 @@
 .popup-side.slide-in {
   animation: slideInRight 0.5s ease forwards;
 }
-
 .popup-side.slide-out {
   animation: slideOutRight 0.3s ease forwards;
 }
