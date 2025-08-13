@@ -5,8 +5,7 @@ import {
     handleNodeFieldChange,
     addValueToArrayField,
     removeValueFromArrayField,
-    getStaticSuggestions,
-    getDynamicSuggestions,
+    getSuggestions,
     handleEnterAddToArrayField,
     promoteOptionToProjectSettings
 } from "../utils/nodeHelpers";
@@ -169,7 +168,7 @@ export default function NodeDetailsPanel({
                                     );
                                 case 'static-multiselect': {
                                     const selected = data[field.id] || [];
-                                    const suggestions = getStaticSuggestions(field, selected, filterByField[field.id] || '');
+                                    const suggestions = getSuggestions(field, selected, filterByField[field.id] || '');
 
                                     return (
                                         <div className="details-row" key={field.id}>

@@ -159,23 +159,11 @@ export function removeValueFromArrayField({ nodeId, fieldId, value, setNodeDetai
 
 // --- Suggestions ---
 
-// For static-multiselect: suggest from field.options (minus already-selected), filtered.
-export function getStaticSuggestions(field, selectedValues = [], filterText = '') {
+// For dynamic-multiselect: suggest from field.options (minus already-selected), filtered.
+export function getSuggestions(field, selectedValues = [], filterText = '') {
   const f = (filterText || '').toLowerCase();
   const selected = new Set(selectedValues);
   return (field.options || [])
-    .filter(opt => opt.toLowerCase().includes(f) && !selected.has(opt));
-}
-
-// For dynamic-multiselect: union of field.options + values seen across all nodes for this field.
-export function getDynamicSuggestions(field, nodeDetails, selectedValues = [], filterText = '') {
-  const f = (filterText || '').toLowerCase();
-  const selected = new Set(selectedValues);
-  const fromOptions = field.options || [];
-  const fromNodes = Array.from(
-    new Set(Object.values(nodeDetails).flatMap(nd => (nd?.[field.id] || [])))
-  );
-  return Array.from(new Set([...fromOptions, ...fromNodes]))
     .filter(opt => opt.toLowerCase().includes(f) && !selected.has(opt));
 }
 
