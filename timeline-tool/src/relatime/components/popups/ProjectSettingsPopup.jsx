@@ -5,7 +5,6 @@ import '../../styles/master-style.css'
 
 const fieldTypes = [
   'description',
-  'image-upload',
   'dropdown',
   'static-multiselect',
   'dynamic-multiselect'

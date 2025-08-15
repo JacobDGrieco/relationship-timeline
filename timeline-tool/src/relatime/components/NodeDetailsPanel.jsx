@@ -66,7 +66,7 @@ export default function NodeDetailsPanel({
             <button
                 className="close-details-button"
                 onClick={() => {
-                    if (isClosing) return;     
+                    if (isClosing) return;
                     setIsClosing(true);
                     setTimeout(() => {
                         setIsClosing(false);
@@ -115,6 +115,28 @@ export default function NodeDetailsPanel({
                 )}
             </div>
             <>
+                <div className="node-detail-fields">
+                    <div className="details-row">
+                        <label className="details-label">Image</label>
+                        <div className="details-input">
+                            <label className="file-upload-label">
+                                Upload Image
+                                <input
+                                    type="file"
+                                    className="file-upload-input"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        handleImageUpload( nodesRef, selectedNode, file, setNodeDetails, setGraphData);
+                                    }}
+                                />
+                            </label>
+                            {data?.image && <div className="file-name">Image uploaded</div>}
+                        </div>
+                    </div>
+                </div>
+
                 {projectSettings?.nodeFields?.length > 0 && (
                     <div className="node-detail-fields">
                         {projectSettings.nodeFields.map((field, idx) => {
@@ -130,30 +152,6 @@ export default function NodeDetailsPanel({
                                                 value={fieldValue}
                                                 onChange={(e) => handleNodeFieldChange(selectedNode, field.id, e.target.value, setNodeDetails)}
                                             />
-                                        </div>
-                                    );
-                                case 'image-upload':
-                                    return (
-                                        <div className="details-row" key={field.id}>
-                                            <label className="details-label">{field.label}</label>
-                                            <div className="details-input">
-                                                <label className="file-upload-label">
-                                                    Upload Image
-                                                    <input
-                                                        type="file"
-                                                        className="file-upload-input"
-                                                        accept="image/*"
-                                                        onChange={(e) => handleImageUpload(
-                                                            nodesRef,
-                                                            selectedNode,
-                                                            e.target.files[0],
-                                                            setNodeDetails,
-                                                            setGraphData
-                                                        )}
-                                                    />
-                                                </label>
-                                                {fieldValue && <div className="file-name">Image uploaded</div>}
-                                            </div>
                                         </div>
                                     );
                                 case 'dropdown':
