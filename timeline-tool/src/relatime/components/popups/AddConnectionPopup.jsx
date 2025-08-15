@@ -35,6 +35,22 @@ export default function AddConnectionPopup({
         return Array.from(new Set(names)).sort((a, b) => a.localeCompare(b));
     }, [nodeDetails]);
 
+    const nameToImage = useMemo(() => {
+        const map = {};
+        Object.values(nodeDetails || {}).forEach(nd => {
+            const n = (nd?.name || "").trim();
+            if (n && nd?.image && !map[n]) map[n] = nd.image;
+        });
+        return map;
+    }, [nodeDetails]);
+
+    const getInitials = (name = "") => {
+        const parts = name.trim().split(/\s+/).filter(Boolean);
+        const first = parts[0]?.[0] || "";
+        const last = parts.length > 1 ? parts[parts.length - 1]?.[0] : "";
+        return (first + last).toUpperCase() || (name[0]?.toUpperCase() || "?");
+    };
+
     // Build options for dropdowns
     const pastEvents = timelineEntries
         .map((entry, idx) => ({ idx, entry }))
@@ -62,6 +78,18 @@ export default function AddConnectionPopup({
                                 <option key={opt} value={opt}>{opt}</option>
                             ))}
                         </select>
+                        <div className='connectionImage'>
+                            {nameToImage[connectionSource] ? (
+                                <img
+                                    src={nameToImage[connectionSource]}
+                                    alt={`${connectionSource || 'Source'} image`}
+                                />
+                            ) : (
+                                <div className='imgEmpty' title={connectionSource || 'No source selected'}>
+                                    {connectionSource ? getInitials(connectionSource) : '—'}
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className="field">
                         <label>Target Name</label>
@@ -74,6 +102,18 @@ export default function AddConnectionPopup({
                                 <option key={opt} value={opt}>{opt}</option>
                             ))}
                         </select>
+                        <div className='connectionImage'>
+                            {nameToImage[connectionTarget] ? (
+                                <img
+                                    src={nameToImage[connectionTarget]}
+                                    alt={`${connectionTarget || 'Target'} image`}
+                                />
+                            ) : (
+                                <div className='imgEmpty' title={connectionTarget || 'No target selected'}>
+                                    {connectionTarget ? getInitials(connectionTarget) : '—'}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
                 <label>Connection Name (Label)</label>
