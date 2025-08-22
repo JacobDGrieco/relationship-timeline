@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { handleAddConnection } from "../../utils/graphHelpers"
 
 export default function AddConnectionPopup({
@@ -28,12 +28,43 @@ export default function AddConnectionPopup({
     partialEndIndex,
     setPartialEndIndex
 }) {
+    const [showDropdown, setShowDropdown] = useState({ source: false, target: false });
+    const [sourceFilter, setSourceFilter] = useState(connectionSource || "");
+    const [targetFilter, setTargetFilter] = useState(connectionTarget || "");
+    const srcRef = useRef(null);
+    const tgtRef = useRef(null);
+    const closeTimers = useRef({}); // avoid closing before click lands
+
+    useEffect(() => setSourceFilter(connectionSource || ""), [connectionSource]);
+    useEffect(() => setTargetFilter(connectionTarget || ""), [connectionTarget]);
+
+    const openDropdown = (key) => {
+        if (closeTimers.current[key]) { clearTimeout(closeTimers.current[key]); closeTimers.current[key] = null; }
+        setShowDropdown((p) => ({ ...p, [key]: true }));
+    };
+    const closeDropdownSoon = (key) => {
+        if (closeTimers.current[key]) clearTimeout(closeTimers.current[key]);
+        closeTimers.current[key] = setTimeout(() => {
+            setShowDropdown((p) => ({ ...p, [key]: false }));
+            closeTimers.current[key] = null;
+        }, 120);
+    };
+
     const nodeNameOptions = useMemo(() => {
         const names = Object.values(nodeDetails || {})
             .map(nd => (nd?.name || "").trim())
             .filter(Boolean);
         return Array.from(new Set(names)).sort((a, b) => a.localeCompare(b));
     }, [nodeDetails]);
+
+    const sourceSuggestions = useMemo(
+        () => nodeNameOptions.filter(n => n.toLowerCase().includes((sourceFilter || "").toLowerCase())),
+        [nodeNameOptions, sourceFilter]
+    );
+    const targetSuggestions = useMemo(
+        () => nodeNameOptions.filter(n => n.toLowerCase().includes((targetFilter || "").toLowerCase())),
+        [nodeNameOptions, targetFilter]
+    );
 
     const nameToImage = useMemo(() => {
         const map = {};
@@ -69,15 +100,41 @@ export default function AddConnectionPopup({
                 <div className="two-col">
                     <div className="field">
                         <label>Source Name</label>
-                        <select
-                            value={connectionSource || ''}
-                            onChange={(e) => setConnectionSource(e.target.value)}
-                        >
-                            <option key="" value=""></option>
-                            {nodeNameOptions.map((opt) => (
-                                <option key={opt} value={opt}>{opt}</option>
-                            ))}
-                        </select>
+                        <div className="details-input relative" style={{ maxWidth: '95%'}}>
+                            <input
+                                ref={srcRef}
+                                type="text"
+                                placeholder="Type to search..."
+                                value={sourceFilter}
+                                onChange={(e) => { setSourceFilter(e.target.value); openDropdown("source"); }}
+                                onFocus={() => openDropdown("source")}
+                                onBlur={() => closeDropdownSoon("source")}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && sourceSuggestions[0]) {
+                                        const v = sourceSuggestions[0];
+                                        setConnectionSource(v);
+                                        setSourceFilter(v);
+                                        setShowDropdown(p => ({ ...p, source: false }));
+                                    }
+                                }}
+                                className="w-full border rounded p-1"
+                            />
+                            {showDropdown.source && sourceSuggestions.length > 0 && (
+                                <div className="dropdown-list" style={{ maxWidth: '13%'}}>
+                                    {sourceSuggestions.map(opt => (
+                                        <div
+                                            key={opt}
+                                            className="dropdown-item"
+                                            onMouseDown={() => {
+                                                setConnectionSource(opt);
+                                                setSourceFilter(opt);
+                                                setShowDropdown(p => ({ ...p, source: false }));
+                                            }}
+                                        >{opt}</div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                         <div className='connectionImage'>
                             {nameToImage[connectionSource] ? (
                                 <img
@@ -93,15 +150,41 @@ export default function AddConnectionPopup({
                     </div>
                     <div className="field">
                         <label>Target Name</label>
-                        <select
-                            value={connectionTarget || ''}
-                            onChange={(e) => setConnectionTarget(e.target.value)}
-                        >
-                            <option key="" value=""></option>
-                            {nodeNameOptions.map((opt) => (
-                                <option key={opt} value={opt}>{opt}</option>
-                            ))}
-                        </select>
+                        <div className="details-input relative" style={{ maxWidth: '95%'}}>
+                            <input
+                                ref={srcRef}
+                                type="text"
+                                placeholder="Type to search..."
+                                value={targetFilter}
+                                onChange={(e) => { setTargetFilter(e.target.value); openDropdown("target"); }}
+                                onFocus={() => openDropdown("target")}
+                                onBlur={() => closeDropdownSoon("target")}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && targetSuggestions[0]) {
+                                        const v = targetSuggestions[0];
+                                        setConnectionTarget(v);
+                                        setTargetFilter(v);
+                                        setShowDropdown(p => ({ ...p, target: false }));
+                                    }
+                                }}
+                                className="w-full border rounded p-1"
+                            />
+                            {showDropdown.target && targetSuggestions.length > 0 && (
+                                <div className="dropdown-list" style={{ maxWidth: '13%'}}>
+                                    {targetSuggestions.map(opt => (
+                                        <div
+                                            key={opt}
+                                            className="dropdown-item"
+                                            onMouseDown={() => {
+                                                setConnectionTarget(opt);
+                                                setTargetFilter(opt);
+                                                setShowDropdown(p => ({ ...p, target: false }));
+                                            }}
+                                        >{opt}</div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                         <div className='connectionImage'>
                             {nameToImage[connectionTarget] ? (
                                 <img
