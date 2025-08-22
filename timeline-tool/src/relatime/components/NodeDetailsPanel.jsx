@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useProject } from '../context/ProjectContext.jsx';
 import {
+    handleDeleteNode,
     handleImageUpload,
     handleNodeFieldChange,
     addValueToArrayField,
@@ -19,7 +20,8 @@ export default function NodeDetailsPanel({
     nodesRef,
     isDetailsVisible,
     setIsDetailsVisible,
-    setJustClosedRecently
+    setJustClosedRecently,
+    setSelectedNode
 }) {
     const { projectSettings, setProjectSettings } = useProject();
     const [isClosing, setIsClosing] = useState(false);
@@ -128,7 +130,7 @@ export default function NodeDetailsPanel({
                                     onChange={(e) => {
                                         const file = e.target.files?.[0];
                                         if (!file) return;
-                                        handleImageUpload( nodesRef, selectedNode, file, setNodeDetails, setGraphData);
+                                        handleImageUpload(nodesRef, selectedNode, file, setNodeDetails, setGraphData);
                                     }}
                                 />
                             </label>
@@ -297,6 +299,22 @@ export default function NodeDetailsPanel({
                     </div>
                 )}
             </>
+            <button
+                style={{
+                    position: 'absolute',
+                    right: '12px',
+                    bottom: '12px',
+                    backgroundColor: 'rgb(200, 50, 50)'
+                }}
+                onClick={() => {
+                    handleDeleteNode(networkRef, selectedNode, setGraphData);
+                    setIsDetailsVisible(false);
+                    setJustClosedRecently(false);
+                    setSelectedNode(null);
+                }}
+            >
+                Delete
+            </button>
         </div>
     )
 }
