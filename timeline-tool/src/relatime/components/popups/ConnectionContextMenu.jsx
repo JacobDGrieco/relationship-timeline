@@ -16,7 +16,7 @@ export default function ConnectionContextMenu({
     nodeDetails
 }) {
     return (
-        <div className="edge-popup" style={{ top: edgePopupPosition.y, left: edgePopupPosition.x }}>
+        <div className="context-menu" style={{ top: edgePopupPosition.y, left: edgePopupPosition.x }}>
             <button onClick={() => {
                 const edge = networkRef.current.body.data.edges.get(selectedEdgeId);
                 const sourceName = nodeDetails[edge.from]?.name || '';

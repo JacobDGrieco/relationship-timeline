@@ -81,6 +81,29 @@ export function handleAddPerson({
   setShowAddPerson(false);
 }
 
+// Remove a node and all its connected edges from graph + vis dataset
+export function handleDeleteNode(networkRef, nodeId, setGraphData) {
+  if (!networkRef?.current || !nodeId) return;
+
+  const net = networkRef.current;
+
+  // Find connected edges first (vis-network API)
+  const connectedEdgeIds = net.getConnectedEdges(nodeId) || [];
+
+  // Remove from vis DataSets
+  net.body.data.nodes.remove({ id: nodeId });
+  connectedEdgeIds.forEach(eid => {
+    net.body.data.edges.remove({ id: eid });
+  });
+
+  // Reflect in React graphData state
+  setGraphData(prev => ({
+    nodes: prev.nodes.filter(n => n.id !== nodeId),
+    edges: prev.edges.filter(e => !connectedEdgeIds.includes(e.id) && e.from !== nodeId && e.to !== nodeId),
+  }));
+}
+
+
 export function handleNodeFieldChange(nodeId, field, value, setNodeDetails) {
   setNodeDetails((prev) => ({
     ...prev,

@@ -15,6 +15,7 @@ import ProjectSettings from './popups/ProjectSettingsPopup.jsx';
 import AddConnectionPopup from './popups/AddConnectionPopup.jsx';
 import AddNodePopup from './popups/AddNodePopup.jsx';
 import AddTimelineEntryPopup from './popups/AddTimelineEntryPopup.jsx';
+import NodeContextMenu from './popups/NodeContextMenu.jsx';
 import ConnectionContextMenu from './popups/ConnectionContextMenu.jsx';
 import TickContextMenu from './popups/TickContextMenu.jsx';
 
@@ -59,6 +60,8 @@ export default function Home() {
   const [connectionDirection, setConnectionDirection] = useState('normal');
   const [connectionLevel, setConnectionLevel] = useState(1);
   const [selectedEdgeId, setSelectedEdgeId] = useState(null);
+  const [showNodePopup, setShowNodePopup] = useState(false);
+  const [nodePopupPosition, setNodePopupPosition] = useState({ x: 0, y: 0 });
   const [showEdgePopup, setShowEdgePopup] = useState(false);
   const [edgePopupPosition, setEdgePopupPosition] = useState({ x: 0, y: 0 });
   const [editingEdgeId, setEditingEdgeId] = useState(null);
@@ -74,6 +77,7 @@ export default function Home() {
   const [partialStartIndex, setPartialStartIndex] = useState(null);
   const [partialEndIndex, setPartialEndIndex] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+
 
   const containerRef = useRef();
   const networkRef = useRef();
@@ -151,6 +155,8 @@ export default function Home() {
         setSelectedEdgeId={setSelectedEdgeId}
         setShowEdgePopup={setShowEdgePopup}
         setEdgePopupPosition={setEdgePopupPosition}
+        setShowNodePopup={setShowNodePopup}
+        setNodePopupPosition={setNodePopupPosition}
         setIsDetailsVisible={setIsDetailsVisible}
         setJustClosedRecently={setJustClosedRecently}
         isDarkMode={isDarkMode}
@@ -314,6 +320,18 @@ export default function Home() {
           setPartialStartIndex={setPartialStartIndex}
           partialEndIndex={partialEndIndex}
           setPartialEndIndex={setPartialEndIndex}
+        />
+      )}
+      {showNodePopup && selectedNode && (
+        <NodeContextMenu
+          nodePopupPosition={nodePopupPosition}
+          selectedNode={selectedNode}
+          setSelectedNode={setSelectedNode}
+          setIsDetailsVisible={setIsDetailsVisible}
+          setShowNodePopup={setShowNodePopup}
+          setShowEdgePopup={setShowEdgePopup}
+          setGraphData={setGraphData}
+          networkRef={networkRef}
         />
       )}
       {showEdgePopup && selectedEdgeId && (

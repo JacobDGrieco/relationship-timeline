@@ -13,6 +13,8 @@ export default function NetworkGraph({
     setSelectedEdgeId,
     setShowEdgePopup,
     setEdgePopupPosition,
+    setShowNodePopup,
+    setNodePopupPosition,
     setIsDetailsVisible,
     setJustClosedRecently,
     isDarkMode
@@ -100,7 +102,19 @@ export default function NetworkGraph({
                     y: e.clientY - rect.top
                 };
 
+                const nodeId = networkRef.current.getNodeAt(pointer);
                 const edgeId = networkRef.current.getEdgeAt(pointer);
+                
+                if (nodeId) {
+                    setSelectedNode(nodeId);
+                    setShowNodePopup(true);
+                    setNodePopupPosition({ x: e.clientX, y: e.clientY });
+                    // Ensure edge popup is closed
+                    setShowEdgePopup(false);
+                    setSelectedEdgeId(null);
+                    return;
+                }
+
                 if (edgeId) {
                     setSelectedEdgeId(edgeId);
                     setShowEdgePopup(true);
@@ -108,6 +122,7 @@ export default function NetworkGraph({
                 } else {
                     setShowEdgePopup(false);
                     setSelectedEdgeId(null);
+                    setShowNodePopup(false);
                 }
             };
 
