@@ -48,18 +48,17 @@ export default function NetworkGraph({
         const options = {
             physics: {
                 enabled: true,
-                solver: "forceAtlas2Based", // or still "repulsion" if you prefer
+                solver: "forceAtlas2Based",
                 stabilization: {
-                    iterations: 150, // let it settle more
+                    iterations: 150,
                     fit: true
                 },
-                // ForceAtlas2 has a built-in way to avoid crowding
                 forceAtlas2Based: {
-                    gravitationalConstant: -50,   // push apart
+                    gravitationalConstant: -50,
                     centralGravity: 0.01,
                     springLength: 200,
                     springConstant: 0.05,
-                    avoidOverlap: 1               // <--- this is important
+                    avoidOverlap: 1
                 }
             },
             layout: {
@@ -68,22 +67,29 @@ export default function NetworkGraph({
             nodes: {
                 shape: "dot",
                 size: 30,
-                font: {
-                    size: 10,
-                    color: isDarkMode ? "#fff" : "#333"
+                color: {
+                    highlight: {
+                        border: "yellow",
+                        background: "#fff6a3"
+                    },
                 },
+                font: { size: 10, color: isDarkMode ? "#fff" : "#333" },
                 borderWidth: 2,
+                borderWidthSelected: 3
             },
             edges: {
                 width: 2,
-                color: { color: "#888" },
-                arrows: {
-                    to: { enabled: true, scaleFactor: 1 }
+                color: {
+                    color: "#888",
+                    highlight: "yellow",
                 },
+                selectionWidth: 3,
+                smooth: false,
                 font: { align: "top" },
+                arrows: { to: { enabled: true, scaleFactor: 1 } }
             },
             interaction: {
-                multiselect: true,
+                multiselect: false,
                 navigationButtons: true,
                 selectConnectedEdges: false
             }
@@ -95,13 +101,14 @@ export default function NetworkGraph({
             const handleRightClick = (e) => {
                 e.preventDefault();
                 const rect = containerRef.current.getBoundingClientRect();
-                const pointer = {
-                    x: e.clientX - rect.left,
-                    y: e.clientY - rect.top
-                };
+                const pointer = { x: e.clientX - rect.left, y: e.clientY - rect.top };
 
                 const nodeId = networkRef.current.getNodeAt(pointer);
                 if (nodeId) {
+                    // make only this node selected
+                    networkRef.current.unselectAll();
+                    networkRef.current.selectNodes([nodeId], false);
+
                     setContextTarget({ type: 'node', id: nodeId });
                     setContextMenuPosition({ x: e.clientX, y: e.clientY });
                     setShowContextMenu(true);
@@ -110,10 +117,15 @@ export default function NetworkGraph({
 
                 const edgeId = networkRef.current.getEdgeAt(pointer);
                 if (edgeId) {
+                    // make only this edge selected
+                    networkRef.current.unselectAll();
+                    networkRef.current.selectEdges([edgeId], false);
+
                     setContextTarget({ type: 'edge', id: edgeId });
                     setContextMenuPosition({ x: e.clientX, y: e.clientY });
                     setShowContextMenu(true);
                 } else {
+                    networkRef.current.unselectAll();
                     setShowContextMenu(false);
                     setContextTarget(null);
                 }
@@ -121,22 +133,49 @@ export default function NetworkGraph({
 
             containerRef.current.addEventListener("contextmenu", handleRightClick);
             networkRef.current.on("click", function (params) {
-                if (params.nodes.length === 1) {
+                // clicked a single node
+                if (params.nodes.length === 1 && params.edges.length === 0) {
                     const nodeId = params.nodes[0];
+
+                    // select only this node
+                    networkRef.current.unselectAll();
+                    networkRef.current.selectNodes([nodeId], false);
+
                     setSelectedNode(nodeId);
                     setIsDetailsVisible(true);
                     setJustClosedRecently(true);
-                } else {
+
+                    // also close any context menu
                     setShowContextMenu(false);
                     setContextTarget(null);
+                    return;
                 }
-            });
 
-            return () => {
-                if (containerRef.current) {
-                    containerRef.current.removeEventListener("contextmenu", handleRightClick);
+                // clicked a single edge
+                if (params.edges.length === 1 && params.nodes.length === 0) {
+                    const edgeId = params.edges[0];
+
+                    // select only this edge
+                    networkRef.current.unselectAll();
+                    networkRef.current.selectEdges([edgeId], false);
+
+                    // when an edge is chosen, hide node details if open
+                    setIsDetailsVisible(false);
+                    setSelectedNode(null);
+
+                    // also close any context menu
+                    setShowContextMenu(false);
+                    setContextTarget(null);
+                    return;
                 }
-            };
+
+                // clicked on empty space or mixed selection -> clear all
+                networkRef.current.unselectAll();
+                setIsDetailsVisible(false);
+                setSelectedNode(null);
+                setShowContextMenu(false);
+                setContextTarget(null);
+            });
         }
     }, [graphData, nodeDetails, isDarkMode]);
 }
