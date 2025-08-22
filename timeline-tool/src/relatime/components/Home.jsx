@@ -15,8 +15,7 @@ import ProjectSettings from './popups/ProjectSettingsPopup.jsx';
 import AddConnectionPopup from './popups/AddConnectionPopup.jsx';
 import AddNodePopup from './popups/AddNodePopup.jsx';
 import AddTimelineEntryPopup from './popups/AddTimelineEntryPopup.jsx';
-import NodeContextMenu from './popups/NodeContextMenu.jsx';
-import ConnectionContextMenu from './popups/ConnectionContextMenu.jsx';
+import ContextMenu from './popups/ContextMenu.jsx';
 import TickContextMenu from './popups/TickContextMenu.jsx';
 
 // Helper Imports
@@ -60,10 +59,9 @@ export default function Home() {
   const [connectionDirection, setConnectionDirection] = useState('normal');
   const [connectionLevel, setConnectionLevel] = useState(1);
   const [selectedEdgeId, setSelectedEdgeId] = useState(null);
-  const [showNodePopup, setShowNodePopup] = useState(false);
-  const [nodePopupPosition, setNodePopupPosition] = useState({ x: 0, y: 0 });
-  const [showEdgePopup, setShowEdgePopup] = useState(false);
-  const [edgePopupPosition, setEdgePopupPosition] = useState({ x: 0, y: 0 });
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+  const [contextTarget, setContextTarget] = useState(null); // {type:'node'|'edge', id}
   const [editingEdgeId, setEditingEdgeId] = useState(null);
   const [selectedSnapshotIndex, setSelectedSnapshotIndex] = useState(null);
   const [showTickContextMenu, setShowTickContextMenu] = useState(false);
@@ -140,7 +138,7 @@ export default function Home() {
     : (timelineEntries.length ? new Date(timelineEntries[timelineEntries.length - 1].timestamp).getTime() : baseTime + 1);
 
   const rangeMs = endTime - baseTime || 1;
-  const timelineFrozen = showTimelinePopup || showAddPerson || showAddConnection || showEdgePopup;
+  const timelineFrozen = showTimelinePopup || showAddPerson || showAddConnection || showContextMenu;
 
   return (
     <div className="app-container">
@@ -152,11 +150,9 @@ export default function Home() {
         nodesRef={nodesRef}
         setGraphMounted={setGraphMounted}
         setSelectedNode={setSelectedNode}
-        setSelectedEdgeId={setSelectedEdgeId}
-        setShowEdgePopup={setShowEdgePopup}
-        setEdgePopupPosition={setEdgePopupPosition}
-        setShowNodePopup={setShowNodePopup}
-        setNodePopupPosition={setNodePopupPosition}
+        setShowContextMenu={setShowContextMenu}
+        setContextMenuPosition={setContextMenuPosition}
+        setContextTarget={setContextTarget}
         setIsDetailsVisible={setIsDetailsVisible}
         setJustClosedRecently={setJustClosedRecently}
         isDarkMode={isDarkMode}
@@ -254,7 +250,6 @@ export default function Home() {
                 showTimelinePopup={showTimelinePopup}
                 showAddPerson={showAddPerson}
                 showAddConnection={showAddConnection}
-                showEdgePopup={showEdgePopup}
               />
             </div>
           </div>
@@ -322,33 +317,25 @@ export default function Home() {
           setPartialEndIndex={setPartialEndIndex}
         />
       )}
-      {showNodePopup && selectedNode && (
-        <NodeContextMenu
-          nodePopupPosition={nodePopupPosition}
-          selectedNode={selectedNode}
-          setSelectedNode={setSelectedNode}
-          setIsDetailsVisible={setIsDetailsVisible}
-          setShowNodePopup={setShowNodePopup}
-          setShowEdgePopup={setShowEdgePopup}
-          setGraphData={setGraphData}
+      {showContextMenu && contextTarget && (
+        <ContextMenu
+          position={contextMenuPosition}
+          target={contextTarget}
           networkRef={networkRef}
-        />
-      )}
-      {showEdgePopup && selectedEdgeId && (
-        <ConnectionContextMenu
-          edgePopupPosition={edgePopupPosition}
-          networkRef={networkRef}
-          selectedEdgeId={selectedEdgeId}
+          // Edge editing props:
+          nodeDetails={nodeDetails}
           setConnectionSource={setConnectionSource}
           setConnectionTarget={setConnectionTarget}
           setConnectionLabel={setConnectionLabel}
           setConnectionDirection={setConnectionDirection}
           setEditingEdgeId={setEditingEdgeId}
           setShowAddConnection={setShowAddConnection}
-          setShowEdgePopup={setShowEdgePopup}
+          // Shared:
+          setShowContextMenu={setShowContextMenu}
           setGraphData={setGraphData}
-          setSelectedEdgeId={setSelectedEdgeId}
-          nodeDetails={nodeDetails}
+          // Node editing props:
+          setIsDetailsVisible={setIsDetailsVisible}
+          setSelectedNode={setSelectedNode}
         />
       )}
       {showTimelinePopup && (

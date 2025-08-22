@@ -10,11 +10,9 @@ export default function NetworkGraph({
     nodesRef,
     setGraphMounted,
     setSelectedNode,
-    setSelectedEdgeId,
-    setShowEdgePopup,
-    setEdgePopupPosition,
-    setShowNodePopup,
-    setNodePopupPosition,
+    setShowContextMenu,
+    setContextMenuPosition,
+    setContextTarget,
     setIsDetailsVisible,
     setJustClosedRecently,
     isDarkMode
@@ -103,26 +101,21 @@ export default function NetworkGraph({
                 };
 
                 const nodeId = networkRef.current.getNodeAt(pointer);
-                const edgeId = networkRef.current.getEdgeAt(pointer);
-                
                 if (nodeId) {
-                    setSelectedNode(nodeId);
-                    setShowNodePopup(true);
-                    setNodePopupPosition({ x: e.clientX, y: e.clientY });
-                    // Ensure edge popup is closed
-                    setShowEdgePopup(false);
-                    setSelectedEdgeId(null);
+                    setContextTarget({ type: 'node', id: nodeId });
+                    setContextMenuPosition({ x: e.clientX, y: e.clientY });
+                    setShowContextMenu(true);
                     return;
                 }
 
+                const edgeId = networkRef.current.getEdgeAt(pointer);
                 if (edgeId) {
-                    setSelectedEdgeId(edgeId);
-                    setShowEdgePopup(true);
-                    setEdgePopupPosition({ x: e.clientX, y: e.clientY });
+                    setContextTarget({ type: 'edge', id: edgeId });
+                    setContextMenuPosition({ x: e.clientX, y: e.clientY });
+                    setShowContextMenu(true);
                 } else {
-                    setShowEdgePopup(false);
-                    setSelectedEdgeId(null);
-                    setShowNodePopup(false);
+                    setShowContextMenu(false);
+                    setContextTarget(null);
                 }
             };
 
@@ -134,10 +127,8 @@ export default function NetworkGraph({
                     setIsDetailsVisible(true);
                     setJustClosedRecently(true);
                 } else {
-                    setShowEdgePopup(false);
-                    setSelectedEdgeId(null);
-                    setIsDetailsVisible(false);
-                    setSelectedNode(null);
+                    setShowContextMenu(false);
+                    setContextTarget(null);
                 }
             });
 

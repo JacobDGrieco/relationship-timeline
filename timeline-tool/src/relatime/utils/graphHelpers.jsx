@@ -87,6 +87,18 @@ export function handleAddConnection({
     setShowAddConnection(false);
 };
 
+export function handleDeleteEdge(networkRef, edgeId, setGraphData, setShowEdgePopup, setSelectedEdgeId) {
+    networkRef.current.body.data.edges.remove({ id: edgeId });
+
+    setGraphData(prev => ({
+        nodes: [...prev.nodes],
+        edges: prev.edges.filter(edge => edge.id !== edgeId)
+    }));
+
+    setShowEdgePopup(false);
+    setSelectedEdgeId(null);
+}
+
 export function generateUniqueID() {
     return 'node-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 }
@@ -113,16 +125,4 @@ export function getArrowDirectionLabel(arrows) {
     if (from) return 'reverse';
     if (to) return 'normal';
     return 'none';
-}
-
-export function deleteEdge(networkRef, edgeId, setGraphData, setShowEdgePopup, setSelectedEdgeId) {
-    networkRef.current.body.data.edges.remove({ id: edgeId });
-
-    setGraphData(prev => ({
-        nodes: [...prev.nodes],
-        edges: prev.edges.filter(edge => edge.id !== edgeId)
-    }));
-
-    setShowEdgePopup(false);
-    setSelectedEdgeId(null);
 }
