@@ -11,7 +11,7 @@ import TimelineTrack from './TimelineTrack.jsx';
 import NodeDetailsPanel from './NodeDetailsPanel.jsx';
 
 // Popup Imports
-import ProjectSettings from './popups/ProjectSettingsPopup.jsx';
+import ProjectSettings from './project-settings/ProjectSettingsPopup.jsx';
 import AddConnectionPopup from './popups/AddConnectionPopup.jsx';
 import AddNodePopup from './popups/AddNodePopup.jsx';
 import AddTimelineEntryPopup from './popups/AddTimelineEntryPopup.jsx';
@@ -159,7 +159,7 @@ export default function Home() {
       />
       <div className="header">
         <div className="header-left">
-          <input type="text" placeholder="Project Name" value={projectName} onChange={(e) => setProjectName(e.target.value)} />
+          <button onClick={() => setShowSettings(true)}>Project Settings</button>
           <button onClick={async () => {
             const token = localStorage.getItem('token');
             await saveProject(
@@ -178,7 +178,6 @@ export default function Home() {
             );
           }}
           >Save Project</button>
-          <button onClick={() => setShowSettings(true)}>Project Settings</button>
         </div>
         <div className="header-center">
           <button onClick={() => setShowAddPerson(true)} disabled={!graphMounted}>Add Node</button>
@@ -261,6 +260,8 @@ export default function Home() {
           setSettings={(newFields) =>
             setProjectSettings(prev => ({ ...prev, nodeFields: newFields }))
           }
+          projectName={projectName}
+          setProjectName={setProjectName}
           onClose={() => setShowSettings(false)}
         />
       )}
