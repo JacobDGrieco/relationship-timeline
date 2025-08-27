@@ -1,0 +1,12 @@
+stat table for nodes and connections (distances, # of connections, etc)
+project changelog OR reloadable version history
+node types
+no redrawing on node/connection add
+project settings have more settings. add node/connection types. add node/connection custom css
+remove dynamic dropdown tags from nodes when option is deleted in settings
+
+Accounts:
+Avatars
+2FA
+Gmail connection
+Change password
