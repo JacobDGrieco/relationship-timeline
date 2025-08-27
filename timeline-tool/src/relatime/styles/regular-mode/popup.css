@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: 20;
 }
 
 .popup {
@@ -18,6 +18,9 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   width: 90%;
   max-width: 400px;
+  max-height: 600px;
+  z-index: 21;
+  overflow-y: auto;
 }
 
 .popup h2 {
@@ -100,7 +103,7 @@
   margin-bottom: 12px;
 }
 
-.popup .two-col .field label{
+.popup .two-col .field label {
   display: block;
   font-weight: 600;
   margin-bottom: 4px;
@@ -145,8 +148,12 @@
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
-  left: calc(50% + 100px);
+  /* NEW: anchor to the right and allow a nudge */
+  right: calc(24px + var(--nudge-right, 0px));
+  /* <-- add this */
   box-shadow: 0 12px 28px rgba(0, 0, 0, .28);
+  z-index: 25;
+  transition: right 0.25s ease;
 }
 
 @keyframes slideLeft {
@@ -156,27 +163,14 @@
   }
 
   100% {
-    transform: translateX(-40%);
+    transform: translateX(-30%);
     opacity: 0.6;
-  }
-}
-@keyframes slideInRight {
-  0% {
-    transform: translateX(40%);
-    transform: translateY(-50%);
-    opacity: 0;
-  }
-
-  100% {
-    transform: translateX(0);
-    transform: translateY(-50%);
-    opacity: 1;
   }
 }
 
 @keyframes slideRight {
   0% {
-    transform: translateX(-40%);
+    transform: translateX(-30%);
     opacity: 0.6;
   }
 
@@ -185,23 +179,36 @@
     opacity: 1;
   }
 }
+
+@keyframes slideInRight {
+  0% {
+    transform: translateY(-50%) translateX(40%);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(-50%) translateX(-40%);
+    opacity: 1;
+  }
+}
+
 @keyframes slideOutRight {
   0% {
-    transform: translateX(0);
-    transform: translateY(-50%);
+    transform: translateY(-50%) translateX(-40%);
     opacity: 1;
   }
 
   100% {
-    transform: translateX(40%);
-    transform: translateY(-50%);
+    transform: translateY(-50%) translateX(40%);
     opacity: 0;
   }
 }
 
-.popup.slide-left {
+.popup.slide-left,
+.popup-side.nudge-left {
   animation: slideLeft 0.3s ease forwards;
 }
+
 .popup.slide-right {
   animation: slideRight 0.5s ease forwards;
 }
@@ -209,8 +216,24 @@
 .popup-side.slide-in {
   animation: slideInRight 0.5s ease forwards;
 }
-.popup-side.slide-out {
+
+.popup-side.slide-out,
+.popup-side.nudge-back {
   animation: slideOutRight 0.3s ease forwards;
+}
+
+.popup-side.nested-open {
+  --nudge-right: 8%;
+}
+
+.popup-side.nested-open::after {
+  content: "";
+  position: absolute;
+  inset: 0;              /* cover the whole side panel */
+  background: rgba(0,0,0,0.2); /* adjust darkness */
+  border-radius: inherit; /* match panel corners */
+  z-index: 5;            /* above panel content */
+  pointer-events: none;  /* let clicks go through to the nested sheet */
 }
 
 .popup .dropdown-options-chip {
@@ -220,4 +243,17 @@
   background: #eef2ff;
   color: #1f2937;
   white-space: nowrap;
+}
+
+.panel-body {
+  transition: opacity 180ms ease, height 180ms ease, margin 180ms ease;
+}
+
+/* Collapse without layout jump */
+.panel-body.collapsed {
+  opacity: 0;
+  height: 0;
+  margin: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
