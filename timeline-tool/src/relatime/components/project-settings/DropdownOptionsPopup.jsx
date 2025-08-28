@@ -3,7 +3,14 @@ import { createPortal } from "react-dom";
 import SidePanel from "./SidePanel";
 import "../../styles/master-style.css";
 
-export default function DropdownOptionsPopup({ field, onSave, onClose, className = '', overlayNode }) {
+export default function DropdownOptionsPopup({
+    field,
+    onSave,
+    onClose,
+    className = '',
+    overlayNode,
+    onOptionsDeleted, // optional
+}) {
     const [items, setItems] = useState(() => sanitize(field?.options));
     const [draft, setDraft] = useState("");
 
@@ -28,10 +35,17 @@ export default function DropdownOptionsPopup({ field, onSave, onClose, className
     };
 
     const removeItem = (v) => {
-        setItems(prev => prev.filter(x => x !== v));
+        setItems(prev => prev.filter(x => x !== v)); // local-only; commit on Save
     };
 
     const handleSave = () => {
+        const before = new Set(Array.isArray(field?.options) ? field.options : []);
+        const after = new Set(items);
+        const deleted = [...before].filter(x => !after.has(x));
+
+        if (deleted.length && typeof field?.type === 'string' && field.type.includes('multiselect')) {
+            onOptionsDeleted?.(field.id, deleted); // single prune pass on Save
+        }
         onSave(sortAlpha(dedupe(items)));
     };
 

@@ -129,6 +129,27 @@ export default function Home() {
     }
   }, [showTickContextMenu]);
 
+  // Remove deleted multiselect options from every node for a specific field
+  const pruneDeletedOptionsFromNodes = (fieldId, deletedValues) => {
+    if (!Array.isArray(deletedValues) || deletedValues.length === 0) return;
+    const deleted = new Set(deletedValues);
+    setNodeDetails(prev => {
+      if (!prev) return prev;
+      let changed = false;
+      const next = { ...prev };
+      for (const [nodeId, details] of Object.entries(prev)) {
+        const arr = details?.[fieldId];
+        if (!Array.isArray(arr) || arr.length === 0) continue;
+        const keep = arr.filter(v => !deleted.has(v));
+        if (keep.length !== arr.length) {
+          next[nodeId] = { ...details, [fieldId]: keep };
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  };
+
   const baseTime = timelineStartDate
     ? new Date(timelineStartDate).getTime()
     : (timelineEntries.length ? new Date(timelineEntries[0].timestamp).getTime() : Date.now());
@@ -263,6 +284,7 @@ export default function Home() {
           projectName={projectName}
           setProjectName={setProjectName}
           onClose={() => setShowSettings(false)}
+          onOptionsDeleted={pruneDeletedOptionsFromNodes}
         />
       )}
       {showAddPerson && (

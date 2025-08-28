@@ -25,7 +25,8 @@ export default function ProjectSettings({
   setSettings,
   projectName,
   setProjectName,
-  onClose
+  onClose,
+  onOptionsDeleted
 }) {
   const [activePanel, setActivePanel] = useState(PANEL.MENU);
   const [closingSide, setClosingSide] = useState(false);
@@ -112,6 +113,7 @@ export default function ProjectSettings({
                 onClose={closeSidePanel}
                 overlayNode={overlayRef.current}
                 setNestedOpen={setNestedOpen}
+                onOptionsDeleted={onOptionsDeleted}
               />
             )}
 

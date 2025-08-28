@@ -11,7 +11,14 @@ const fieldTypes = [
   'dynamic-multiselect'
 ];
 
-export default function NodeFieldTypes({ settings, setSettings, onClose, overlayNode, setNestedOpen }) {
+export default function NodeFieldTypes({
+  settings,
+  setSettings,
+  onClose,
+  overlayNode,
+  setNestedOpen,
+  onOptionsDeleted, // <-- NEW
+}) {
   const [fields, setFields] = useState(settings || []);
   const [editingField, setEditingField] = useState(null); // {id,label,type,options}
   const [closingOptions, setClosingOptions] = useState(false);
@@ -147,6 +154,7 @@ export default function NodeFieldTypes({ settings, setSettings, onClose, overlay
             updateField(editingField.id, 'options', nextOptions);
             closeSidePanel();
           }}
+          onOptionsDeleted={onOptionsDeleted}
         />
       )}
     </>
