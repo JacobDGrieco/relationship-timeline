@@ -20,8 +20,11 @@ export default function AddNodePopup({
   setPartialStartIndex,
   partialEndIndex,
   setPartialEndIndex,
-  projectSettings
+  projectSettings,
+  nodeType,
+  setNodeType
 }) {
+  const typeOptions = (projectSettings?.nodeTypes?.length ? projectSettings.nodeTypes : ["Default"]);
 
   // Build options for dropdowns
   const pastEvents = timelineEntries
@@ -40,6 +43,16 @@ export default function AddNodePopup({
         <h2>Add Node</h2>
         <label>Name</label>
         <input type="text" value={personName} onChange={(e) => setPersonName(e.target.value)} />
+        <label>Node Type</label>
+        <select
+          value={nodeType || typeOptions[0]}
+          onChange={(e) => setNodeType(e.target.value)}
+          required
+        >
+          {typeOptions.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
         <label>Apply To Snapshots</label>
         <select value={applyMode} onChange={(e) => setApplyMode(e.target.value)}>
           <option value="none">None</option>
@@ -96,7 +109,8 @@ export default function AddNodePopup({
             partialEndIndex,
             networkRef,
             nodeDetails,
-            projectSettings
+            projectSettings,
+            nodeType: (nodeType || typeOptions[0] || "Default")
           })}>Add</button>
         </div>
       </div>

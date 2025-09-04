@@ -19,12 +19,13 @@ export function handleAddPerson({
   partialEndIndex,
   networkRef,
   nodeDetails,
-  projectSettings
+  projectSettings,
+  nodeType
 }) {
   const id = generateUniqueID();
   const label = personName || `Node ${id}`;
 
-  const newNode = { id, label };
+  const newNode = { id, label, type: nodeType || "Default" };
   nodesRef.current.add(newNode);
 
   setGraphData(prev => ({
@@ -33,7 +34,8 @@ export function handleAddPerson({
   }));
 
   const baseDetails = {
-    name: personName
+    name: personName,
+    type: nodeType || "Default"
   };
 
   if (projectSettings?.length) {
@@ -221,5 +223,62 @@ export function promoteOptionToProjectSettings(setProjectSettings, fieldId, valu
       return { ...f, options: next };
     });
     return { ...prev, nodeFields };
+  });
+}
+
+export function pruneDeletedNodeTypes(deletedTypes, replacementType, setNodeDetails, nodeDetails, networkRef) {
+  if (!Array.isArray(deletedTypes) || deletedTypes.length === 0) return;
+  const deleted = new Set(deletedTypes);
+  const fallback = replacementType || "Default";
+
+  // Update nodeDetails
+  setNodeDetails(prev => {
+    if (!prev) return prev;
+    let changed = false;
+    const next = { ...prev };
+    for (const [nodeId, details] of Object.entries(prev)) {
+      const t = details?.type;
+      if (t && deleted.has(t)) {
+        next[nodeId] = { ...details, type: fallback };
+        changed = true;
+      }
+    }
+    return changed ? next : prev;
+  });
+
+  // Mirror change onto vis nodes (for future shape logic)
+  try {
+    const net = networkRef.current;
+    if (net?.body?.data?.nodes) {
+      const updates = [];
+      for (const [nodeId, details] of Object.entries(nodeDetails)) {
+        const t = details?.type;
+        if (t && deleted.has(t)) {
+          updates.push({ id: nodeId, type: fallback });
+        }
+      }
+      if (updates.length) net.body.data.nodes.update(updates);
+    }
+  } catch { /* no-op */ }
+}
+
+// Remove deleted multiselect options from every node for a specific field
+export function pruneDeletedOptionsFromNodes(fieldId, deletedValues, setNodeDetails) {
+  if (!Array.isArray(deletedValues) || deletedValues.length === 0) return;
+  const deleted = new Set(deletedValues);
+  setNodeDetails(prev => {
+    if (!prev) return prev;
+    let changed = false;
+    const next = { ...prev };
+    for (const [nodeId, details] of Object.entries(prev)) {
+      const arr = details?.[fieldId];
+      if (!Array.isArray(arr) || arr.length === 0) continue;
+      const keep = arr.filter(v => !deleted.has(v));
+      if (keep.length !== arr.length) {
+        next[nodeId] = { ...details, [fieldId]: keep };
+        changed = true;
+      }
+    }
+    return changed ? next : prev;
   });
 }

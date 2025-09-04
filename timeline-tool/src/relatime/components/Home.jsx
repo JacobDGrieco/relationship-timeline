@@ -20,6 +20,7 @@ import TickContextMenu from './popups/TickContextMenu.jsx';
 
 // Helper Imports
 import ThemeToggleSlider from '../utils/themeHelper.jsx';
+import { pruneDeletedNodeTypes, pruneDeletedOptionsFromNodes } from '../utils/nodeHelpers.jsx';
 import { saveProject } from '../../accounts/utils/SLDToCloud.jsx';
 
 // Style Import
@@ -46,6 +47,7 @@ export default function Home() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [showAddPerson, setShowAddPerson] = useState(false);
   const [personName, setPersonName] = useState("");
+  const [nodeType, setNodeType] = useState("");
   const [dropdownFilter, setDropdownFilter] = useState("");
   const [roleDropdownFilter, setRoleDropdownFilter] = useState("");
   const [showDropdown, setShowDropdown] = useState({ roles: false, secondarySeries: false });
@@ -91,26 +93,28 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!projectSettings.nodeFields || projectSettings.nodeFields.length === 0) {
-      setProjectSettings(prev => ({
-        ...prev,
-        nodeFields: [
-          {
-            id: 'description',
-            label: 'New Field',
-            type: 'description',
-            order: 0,
-          }
-        ]
-      }));
-    }
-  }, [projectSettings, setProjectSettings]);
+    setProjectSettings(prev => {
+      const p = prev || {};
+      return {
+        ...p,
+        nodeTypes: Array.isArray(p.nodeTypes) ? p.nodeTypes : [],
+        connectionTypes: Array.isArray(p.connectionTypes) ? p.connectionTypes : [],
+      };
+    });
+  }, []);
 
   useEffect(() => {
     if (selectedNode && networkRef.current) {
       networkRef.current.selectNodes([selectedNode]);
     }
   }, [selectedNode]);
+
+  // Ensure nodeTypes array exists (editable later in "Node/Connections Types")
+  useEffect(() => {
+    if (!Array.isArray(projectSettings.nodeTypes)) {
+      setProjectSettings(prev => ({ ...prev, nodeTypes: [] }));
+    }
+  }, [projectSettings, setProjectSettings]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -128,27 +132,6 @@ export default function Home() {
       return () => window.removeEventListener('click', closePopup);
     }
   }, [showTickContextMenu]);
-
-  // Remove deleted multiselect options from every node for a specific field
-  const pruneDeletedOptionsFromNodes = (fieldId, deletedValues) => {
-    if (!Array.isArray(deletedValues) || deletedValues.length === 0) return;
-    const deleted = new Set(deletedValues);
-    setNodeDetails(prev => {
-      if (!prev) return prev;
-      let changed = false;
-      const next = { ...prev };
-      for (const [nodeId, details] of Object.entries(prev)) {
-        const arr = details?.[fieldId];
-        if (!Array.isArray(arr) || arr.length === 0) continue;
-        const keep = arr.filter(v => !deleted.has(v));
-        if (keep.length !== arr.length) {
-          next[nodeId] = { ...details, [fieldId]: keep };
-          changed = true;
-        }
-      }
-      return changed ? next : prev;
-    });
-  };
 
   const baseTime = timelineStartDate
     ? new Date(timelineStartDate).getTime()
@@ -275,12 +258,24 @@ export default function Home() {
           </div>
         </div>
       </div>
-      {showSettings && (
+      +  {showSettings && (
         <ProjectSettings
           settings={projectSettings.nodeFields}
           setSettings={(newFields) =>
             setProjectSettings(prev => ({ ...prev, nodeFields: newFields }))
           }
+          networkRef={networkRef}
+          nodeDetails={nodeDetails}
+          setNodeDetails={setNodeDetails}
+          nodeTypes={projectSettings.nodeTypes || []}
+          setNodeTypes={(nt) =>
+            setProjectSettings(prev => ({ ...prev, nodeTypes: nt }))
+          }
+          connectionTypes={projectSettings.connectionTypes || []}
+          setConnectionTypes={(ct) =>
+            setProjectSettings(prev => ({ ...prev, connectionTypes: ct }))
+          }
+          onNodeTypesDeleted={pruneDeletedNodeTypes}
           projectName={projectName}
           setProjectName={setProjectName}
           onClose={() => setShowSettings(false)}
@@ -308,6 +303,8 @@ export default function Home() {
           partialEndIndex={partialEndIndex}
           setPartialEndIndex={setPartialEndIndex}
           projectSettings={projectSettings}
+          nodeType={nodeType}
+          setNodeType={setNodeType}
         />
       )}
       {showAddConnection && (

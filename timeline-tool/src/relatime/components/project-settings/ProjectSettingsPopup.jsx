@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import SidePanel from './SidePanel.jsx';
 import ProjectName from './ProjectName.jsx';
 import NodeFieldTypes from './NodeFieldTypes.jsx';
+import NodeConnectionTypesPopup from './NodeConnectionTypesPopup.jsx';
 import '../../styles/master-style.css';
 
 const fieldTypes = [
@@ -16,13 +17,22 @@ const PANEL = {
   NAME: 'project-name',
   FIELDS: 'node-fields',
   TYPES: 'types',
-  CSS: 'custom-css',
+  NODE_CSS: 'node-css',
+  CONNECTION_CSS: 'connection-css',
   CHANGELOG: 'changelog',
 };
 
 export default function ProjectSettings({
   settings,
   setSettings,
+  networkRef,
+  nodeDetails,
+  setNodeDetails,
+  nodeTypes,
+  setNodeTypes,
+  connectionTypes,
+  setConnectionTypes,
+  onNodeTypesDeleted,
   projectName,
   setProjectName,
   onClose,
@@ -37,10 +47,11 @@ export default function ProjectSettings({
 
   const cards = useMemo(() => ([
     { key: PANEL.NAME, title: 'Project Name', subtitle: 'Rename your project' },
-    { key: PANEL.FIELDS, title: 'Node Field Types', subtitle: 'Manage custom fields' },
     { key: PANEL.TYPES, title: 'Node/Connection Types', subtitle: 'Define types (soon)' },
-    { key: PANEL.CSS, title: 'Custom Node/Connection CSS', subtitle: 'Per-type styles (soon)' },
+    { key: PANEL.NODE_CSS, title: 'Custom Node CSS', subtitle: 'Per-type styles (soon)' },
     { key: PANEL.CHANGELOG, title: 'Project Changelog', subtitle: 'Log & view changes (soon)' },
+    { key: PANEL.FIELDS, title: 'Node Field Types', subtitle: 'Manage custom fields' },
+    { key: PANEL.CONNECTION_CSS, title: 'Custom Connection CSS', subtitle: 'Per-type styles (soon)' }
   ]), []);
 
   const closeSidePanel = () => {
@@ -118,12 +129,17 @@ export default function ProjectSettings({
             )}
 
             {activePanel === PANEL.TYPES && (
-              <div style={{ display: 'grid', gap: '1rem' }}>
-                <p style={{ opacity: 0.8, marginTop: 0 }}>This feature is coming soon. You’ll be able to define named types for nodes and connections, set defaults, and reference them elsewhere.</p>
-                <div className="actions">
-                  <button className="cancel" onClick={closeSidePanel}>Back</button>
-                </div>
-              </div>
+              <NodeConnectionTypesPopup
+                networkRef={networkRef}
+                nodeDetails={nodeDetails}
+                setNodeDetails={setNodeDetails}
+                nodeTypes={Array.isArray(nodeTypes) ? nodeTypes : []}
+                setNodeTypes={setNodeTypes}
+                connectionTypes={Array.isArray(connectionTypes) ? connectionTypes : []}
+                setConnectionTypes={setConnectionTypes}
+                onNodeTypesDeleted={onNodeTypesDeleted}
+                onClose={closeSidePanel}
+              />
             )}
 
             {activePanel === PANEL.CSS && (
@@ -154,7 +170,8 @@ function panelTitle(key) {
   if (key === 'project-name') return 'Project Name';
   if (key === 'node-fields') return 'Node Field Types';
   if (key === 'types') return 'Node/Connection Types';
-  if (key === 'custom-css') return 'Custom Node/Connection CSS';
+  if (key === 'node-css') return 'Custom Node CSS';
+  if (key === 'connection-css') return 'Custom Connection CSS';
   if (key === 'changelog') return 'Project Changelog';
   return 'Settings';
 }

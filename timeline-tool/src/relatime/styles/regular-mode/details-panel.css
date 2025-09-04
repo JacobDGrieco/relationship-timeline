@@ -34,6 +34,7 @@
     opacity: 1;
   }
 }
+
 @keyframes paneOutRight {
   0% {
     transform: translateX(0);
@@ -49,6 +50,7 @@
 .slide-pane.slide-in {
   animation: paneInRight 0.3s ease forwards;
 }
+
 .slide-pane.slide-out {
   animation: paneOutRight 0.3s ease forwards;
 }
@@ -82,10 +84,14 @@
 }
 
 .details-header {
-  display: flex;
+  display: block;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+.details-header select {
+  width: 100%;
 }
 
 .editable-node-name {
@@ -96,6 +102,28 @@
 .editable-node-name:focus {
   outline: 2px solid #3b82f6;
   border-radius: 4px;
+}
+
+.node-type-display {
+  font-size: 0.9rem;
+  /* smaller than name */
+  color: #6b7280;
+  /* Tailwind gray-500 */
+  font-style: italic;
+  /* italicized */
+  cursor: pointer;
+  margin-top: -4px;
+  margin-bottom: 8px;
+}
+
+.node-type-display:hover {
+  color: #374151;
+  /* darker gray on hover */
+}
+
+.node-type-label {
+  font-weight: 600;
+  margin-right: 4px;
 }
 
 .details-row {

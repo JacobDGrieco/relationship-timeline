@@ -26,6 +26,7 @@ export default function NodeDetailsPanel({
     const { projectSettings, setProjectSettings } = useProject();
     const [isClosing, setIsClosing] = useState(false);
     const [isEditingName, setIsEditingName] = useState(false);
+    const [isEditingType, setIsEditingType] = useState(false);
     const [showDropdown, setShowDropdown] = useState({});
     const [filterByField, setFilterByField] = useState({});
     const inputRefs = useRef({});
@@ -33,6 +34,11 @@ export default function NodeDetailsPanel({
 
     const data = nodeDetails[selectedNode] || {};
     if (!selectedNode) return null;
+
+    const typeOptions = Array.isArray(projectSettings?.nodeTypes) && projectSettings.nodeTypes.length > 0
+        ? projectSettings.nodeTypes
+        : ["Default"];
+    const currentType = data?.type || typeOptions[0];
 
     const ensureRef = (fieldId) => {
         if (!inputRefs.current[fieldId]) {
@@ -114,6 +120,44 @@ export default function NodeDetailsPanel({
                     >
                         {nodeDetails[selectedNode]?.name || `Node ${selectedNode}`}
                     </h3>
+                )}
+                {/* Node Type: click-to-edit just like name */}
+                {isEditingType ? (
+                    <select
+                        autoFocus
+                        value={currentType}
+                        onChange={(e) => {
+                            const nextType = e.target.value;
+                            // Persist to details
+                            setNodeDetails(prev => ({
+                                ...prev,
+                                [selectedNode]: {
+                                    ...prev[selectedNode],
+                                    type: nextType
+                                }
+                            }));
+                            // Also mirror on vis node for future shape logic
+                            try {
+                                networkRef.current?.body?.data?.nodes?.update?.({ id: selectedNode, type: nextType });
+                            } catch { }
+                            setIsEditingType(false);
+                        }}
+                        onBlur={() => setIsEditingType(false)}
+                        className="details-input"
+                        style={{ marginTop: '4px', maxWidth: 240 }}
+                    >
+                        {typeOptions.map(opt => (
+                            <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                    </select>
+                ) : (
+                    <div
+                        className="node-type-display"
+                        onClick={() => setIsEditingType(true)}
+                        title="Click to edit type"
+                    >
+                        <span className="node-type-label"></span> {currentType}
+                    </div>
                 )}
             </div>
             <>
@@ -315,6 +359,6 @@ export default function NodeDetailsPanel({
             >
                 Delete
             </button>
-        </div>
+        </div >
     )
 }
