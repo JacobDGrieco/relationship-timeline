@@ -141,9 +141,6 @@ export default function Home() {
     ? new Date(timelineEndDate).getTime()
     : (timelineEntries.length ? new Date(timelineEntries[timelineEntries.length - 1].timestamp).getTime() : baseTime + 1);
 
-  const rangeMs = endTime - baseTime || 1;
-  const timelineFrozen = showTimelinePopup || showAddPerson || showAddConnection || showContextMenu;
-
   return (
     <div className="app-container">
       <NetworkGraph
@@ -258,7 +255,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      +  {showSettings && (
+      {showSettings && (
         <ProjectSettings
           settings={projectSettings.nodeFields}
           setSettings={(newFields) =>
