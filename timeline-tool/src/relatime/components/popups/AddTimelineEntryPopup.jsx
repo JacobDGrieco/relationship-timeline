@@ -30,7 +30,7 @@ export default function AddTimelineEntryPopup({
                     placeholder="e.g. Character Introduced"
                 />
                 <label>Type</label>
-                <div style={{ display: 'flex', gap: '1rem' }}>
+                <div className="buttons" style={{ display: 'flex', gap: '1rem' }}>
                     <label>
                         <input
                             type="radio"
@@ -77,7 +77,7 @@ export default function AddTimelineEntryPopup({
                         if (newIndex !== -1) {
                             setSelectedSnapshotIndex(newIndex);
                         }
-                
+
                         setShowTimelinePopup(false);
                         setEntryText("");
                         setEntryType("event");

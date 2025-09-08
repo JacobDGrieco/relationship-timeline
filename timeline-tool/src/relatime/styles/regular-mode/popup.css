@@ -18,7 +18,7 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   width: 90%;
   max-width: 400px;
-  max-height: 600px;
+  max-height: 700px;
   z-index: 21;
   overflow-y: auto;
 }
@@ -229,11 +229,16 @@
 .popup-side.nested-open::after {
   content: "";
   position: absolute;
-  inset: 0;              /* cover the whole side panel */
-  background: rgba(0,0,0,0.2); /* adjust darkness */
-  border-radius: inherit; /* match panel corners */
-  z-index: 5;            /* above panel content */
-  pointer-events: none;  /* let clicks go through to the nested sheet */
+  inset: 0;
+  /* cover the whole side panel */
+  background: rgba(0, 0, 0, 0.2);
+  /* adjust darkness */
+  border-radius: inherit;
+  /* match panel corners */
+  z-index: 5;
+  /* above panel content */
+  pointer-events: none;
+  /* let clicks go through to the nested sheet */
 }
 
 .popup .dropdown-options-chip {

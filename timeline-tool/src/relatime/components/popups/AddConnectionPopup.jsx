@@ -100,7 +100,7 @@ export default function AddConnectionPopup({
                 <div className="two-col">
                     <div className="field">
                         <label>Source Name</label>
-                        <div className="details-input relative" style={{ maxWidth: '95%'}}>
+                        <div className="details-input relative" style={{ maxWidth: '95%' }}>
                             <input
                                 ref={srcRef}
                                 type="text"
@@ -120,7 +120,7 @@ export default function AddConnectionPopup({
                                 className="w-full border rounded p-1"
                             />
                             {showDropdown.source && sourceSuggestions.length > 0 && (
-                                <div className="dropdown-list" style={{ maxWidth: '13%'}}>
+                                <div className="dropdown-list" style={{ maxWidth: '13%' }}>
                                     {sourceSuggestions.map(opt => (
                                         <div
                                             key={opt}
@@ -150,7 +150,7 @@ export default function AddConnectionPopup({
                     </div>
                     <div className="field">
                         <label>Target Name</label>
-                        <div className="details-input relative" style={{ maxWidth: '95%'}}>
+                        <div className="details-input relative" style={{ maxWidth: '95%' }}>
                             <input
                                 ref={srcRef}
                                 type="text"
@@ -170,7 +170,7 @@ export default function AddConnectionPopup({
                                 className="w-full border rounded p-1"
                             />
                             {showDropdown.target && targetSuggestions.length > 0 && (
-                                <div className="dropdown-list" style={{ maxWidth: '13%'}}>
+                                <div className="dropdown-list" style={{ maxWidth: '13%' }}>
                                     {targetSuggestions.map(opt => (
                                         <div
                                             key={opt}
