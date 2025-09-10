@@ -6,24 +6,23 @@ import AccountMenu from '../../accounts/components/AccountMenu.jsx';
 import { useProject } from '../context/ProjectContext.jsx';
 
 // Component Imports
+import ThemeToggleSlider from '../utils/themeHelper.jsx';
 import NetworkGraph from './NetworkGraph.jsx';
 import TimelineTrack from './TimelineTrack.jsx';
 import NodeDetailsPanel from './NodeDetailsPanel.jsx';
 
 // Popup Imports
 import ProjectSettings from './project-settings/ProjectSettingsPopup.jsx';
-import AddConnectionPopup from './popups/AddConnectionPopup.jsx';
 import AddNodePopup from './popups/AddNodePopup.jsx';
+import AddConnectionPopup from './popups/AddConnectionPopup.jsx';
 import AddTimelineEntryPopup from './popups/AddTimelineEntryPopup.jsx';
-import ContextMenu from './popups/ContextMenu.jsx';
-import TickContextMenu from './popups/TickContextMenu.jsx';
+import { NodeContextMenu, EdgeContextMenu, TickContextMenu } from './popups/ContextMenu.jsx';
 
 // Helper Imports
-import ThemeToggleSlider from '../utils/themeHelper.jsx';
 import { pruneDeletedNodeTypes, pruneDeletedOptionsFromNodes } from '../utils/nodeHelpers.jsx';
 import { saveProject } from '../../accounts/utils/SLDToCloud.jsx';
 
-// Style Import
+// Styles Import
 import '../styles/master-style.css';
 
 export default function Home() {
@@ -63,11 +62,10 @@ export default function Home() {
   const [selectedEdgeId, setSelectedEdgeId] = useState(null);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
-  const [contextTarget, setContextTarget] = useState(null); // {type:'node'|'edge', id}
+  const [contextTarget, setContextTarget] = useState(null); // {type:'node'|'edge'|'tick', id}
   const [editingEdgeId, setEditingEdgeId] = useState(null);
+  const [editingTickId, setEditingTickId] = useState(null);
   const [selectedSnapshotIndex, setSelectedSnapshotIndex] = useState(null);
-  const [showTickContextMenu, setShowTickContextMenu] = useState(false);
-  const [tickContextMenuPosition, setTickContextMenuPosition] = useState({ x: 0, y: 0 });
   const [selectedTickIndex, setSelectedTickIndex] = useState(null);
   const [hoveredTick, setHoveredTick] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -78,11 +76,8 @@ export default function Home() {
   const [partialEndIndex, setPartialEndIndex] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
 
-
   const containerRef = useRef();
   const networkRef = useRef();
-  const roleInputRef = useRef(null);
-  const secondaryInputRef = useRef(null);
   const nodesRef = useRef(null);
   const timelineTrackRef = useRef(null);
   const lastActiveTickRef = useRef(null);
@@ -124,14 +119,6 @@ export default function Home() {
       return () => container.removeEventListener("contextmenu", disableRightClick);
     }
   }, []);
-
-  useEffect(() => {
-    const closePopup = () => setShowTickContextMenu(false);
-    if (showTickContextMenu) {
-      window.addEventListener('click', closePopup);
-      return () => window.removeEventListener('click', closePopup);
-    }
-  }, [showTickContextMenu]);
 
   const baseTime = timelineStartDate
     ? new Date(timelineStartDate).getTime()
@@ -239,9 +226,10 @@ export default function Home() {
                 setNodeDetails={setNodeDetails}
                 selectedTickIndex={selectedTickIndex}
                 setSelectedTickIndex={setSelectedTickIndex}
-                tickContextMenuPosition={tickContextMenuPosition}
-                setTickContextMenuPosition={setTickContextMenuPosition}
-                setShowTickContextMenu={setShowTickContextMenu}
+                contextMenuPosition={contextMenuPosition}
+                setContextTarget={setContextTarget}
+                setContextMenuPosition={setContextMenuPosition}
+                setShowContextMenu={setShowContextMenu}
                 setHoveredTick={setHoveredTick}
                 networkRef={networkRef}
                 nodesRef={nodesRef}
@@ -334,27 +322,6 @@ export default function Home() {
           setPartialEndIndex={setPartialEndIndex}
         />
       )}
-      {showContextMenu && contextTarget && (
-        <ContextMenu
-          position={contextMenuPosition}
-          target={contextTarget}
-          networkRef={networkRef}
-          // Edge editing props:
-          nodeDetails={nodeDetails}
-          setConnectionSource={setConnectionSource}
-          setConnectionTarget={setConnectionTarget}
-          setConnectionLabel={setConnectionLabel}
-          setConnectionDirection={setConnectionDirection}
-          setEditingEdgeId={setEditingEdgeId}
-          setShowAddConnection={setShowAddConnection}
-          // Shared:
-          setShowContextMenu={setShowContextMenu}
-          setGraphData={setGraphData}
-          // Node editing props:
-          setIsDetailsVisible={setIsDetailsVisible}
-          setSelectedNode={setSelectedNode}
-        />
-      )}
       {showTimelinePopup && (
         <AddTimelineEntryPopup
           entryText={entryText}
@@ -373,17 +340,52 @@ export default function Home() {
           setShowTimelinePopup={setShowTimelinePopup}
           timelineEntries={timelineEntries}
           setSelectedSnapshotIndex={setSelectedSnapshotIndex}
+          editingTickId={editingTickId}
+          setEditingTickId={setEditingTickId}
         />
       )}
-      {showTickContextMenu && (
+      {showContextMenu && contextTarget.type == 'node' && (
+        <NodeContextMenu
+          position={contextMenuPosition}
+          networkRef={networkRef}
+          setShowContextMenu={setShowContextMenu}
+          nodeId={contextTarget.id}
+          setSelectedNode={setSelectedNode}
+          setIsDetailsVisible={setIsDetailsVisible}
+          setGraphData={setGraphData}
+        />
+      )}
+      {showContextMenu && contextTarget.type == 'edge' && (
+        <EdgeContextMenu
+          position={contextMenuPosition}
+          networkRef={networkRef}
+          setShowContextMenu={setShowContextMenu}
+          edgeId={contextTarget.id}
+          nodeDetails={nodeDetails}
+          setEditingEdgeId={setEditingEdgeId}
+          setShowAddConnection={setShowAddConnection}
+          setConnectionSource={setConnectionSource}
+          setConnectionTarget={setConnectionTarget}
+          setConnectionLabel={setConnectionLabel}
+          setConnectionDirection={setConnectionDirection}
+          setGraphData={setGraphData}
+        />
+      )}
+      {showContextMenu && contextTarget.type == 'tick' && (
         <TickContextMenu
-          tickContextMenuPosition={tickContextMenuPosition}
-          selectedTickIndex={selectedTickIndex}
-          setTimelineEntries={setTimelineEntries}
+          position={contextMenuPosition}
+          setShowContextMenu={setShowContextMenu}
+          tickId={contextTarget.id}
           timelineEntries={timelineEntries}
-          setShowTickContextMenu={setShowTickContextMenu}
-          selectedSnapshotIndex={selectedSnapshotIndex}
-          setSelectedSnapshotIndex={setSelectedSnapshotIndex}
+          setTimelineEntries={setTimelineEntries}
+          setEditingTickId={setEditingTickId}
+          snapshotId={selectedSnapshotIndex}
+          setSnapshotId={setSelectedSnapshotIndex}
+          setShowTimelinePopup={setShowTimelinePopup}
+          setEntryText={setEntryText}
+          setEntryType={setEntryType}
+          setEntryDate={setEntryDate}
+          setEntryTime={setEntryTime}
         />
       )}
     </div>

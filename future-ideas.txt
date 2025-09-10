@@ -1,10 +1,9 @@
 stat table for nodes and connections (distances, # of connections, etc)
 no redrawing on node/connection add
-add edit button to events
-shrink space between Type and radio buttons in AddEventPopup
 fix nodes not saving changed data when going between events
 add a copy function to copy+paste nodes across events
 project settings have more settings. add connection types. add node/connection custom css. add project changelog
+add function in each AddPopup to clear fields on cancel
 
 Accounts:
 Avatars

@@ -13,8 +13,9 @@ export default function TimelineTick({
     setSelectedSnapshotIndex,
     setSelectedTickIndex,
     setHoveredTick,
-    setTickContextMenuPosition,
-    setShowTickContextMenu,
+    setContextTarget,
+    setContextMenuPosition,
+    setShowContextMenu,
     networkRef,
     nodesRef
 }) {
@@ -40,12 +41,12 @@ export default function TimelineTick({
         networkRef.current.body.data.edges.add(snapshot.graphData.edges);
     };
 
-
-    const handleContextMenu = (e) => {
+    const handleRightClick = (e) => {
         e.preventDefault();
         setSelectedTickIndex(idx);
-        setTickContextMenuPosition({ x: e.clientX, y: e.clientY });
-        setShowTickContextMenu(true);
+        setContextTarget({ type: 'tick', id: idx });
+        setContextMenuPosition({ x: e.clientX, y: e.clientY });
+        setShowContextMenu(true);
     };
 
     if (!inView) return null;
@@ -56,12 +57,12 @@ export default function TimelineTick({
             className={`timeline-tick ${entry.type} ${idx === selectedSnapshotIndex ? "active" : ""}`}
             style={{ left: `${leftPx}px`, opacity: inView ? 1 : 0.15, pointerEvents: inView ? 'auto' : 'none' }}
             onClick={handleClick}
-            onContextMenu={handleContextMenu}
+            onContextMenu={handleRightClick}
             onMouseEnter={() => { setHoveredTick({ left: leftPx, time: formatDateTime(entry.timestamp) }); }}
             onMouseLeave={() => { setHoveredTick(null); }}
         >
             <div className="tick-line" />
-            <div className="tick-label">{entry.text}</div>
+            <div className="tick-label">{entry.name}</div>
         </div>
     );
 }

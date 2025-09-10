@@ -18,6 +18,16 @@ export function formatDateTime(timestamp) {
   return date.toLocaleString(undefined, options).replace(',', ' -');
 }
 
+export function formatTime(timestamp) {
+  const date = new Date(timestamp);
+  const options = {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  };
+  return date.toLocaleTimeString(undefined, options);
+}
+
 export function getNowDateTime() {
   const now = new Date();
   const date = now.toISOString().split("T")[0];

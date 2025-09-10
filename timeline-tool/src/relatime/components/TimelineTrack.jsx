@@ -12,8 +12,9 @@ export default function TimelineTrack({
   setGraphData,
   setNodeDetails,
   setSelectedTickIndex,
-  setTickContextMenuPosition,
-  setShowTickContextMenu,
+  setContextTarget,
+  setContextMenuPosition,
+  setShowContextMenu,
   setHoveredTick,
   networkRef,
   nodesRef,
@@ -42,8 +43,9 @@ export default function TimelineTrack({
         setSelectedSnapshotIndex={setSelectedSnapshotIndex}
         setSelectedTickIndex={setSelectedTickIndex}
         setHoveredTick={setHoveredTick}
-        setTickContextMenuPosition={setTickContextMenuPosition}
-        setShowTickContextMenu={setShowTickContextMenu}
+        setContextTarget={setContextTarget}
+        setContextMenuPosition={setContextMenuPosition}
+        setShowContextMenu={setShowContextMenu}
         networkRef={networkRef}
         nodesRef={nodesRef}
       />
@@ -59,8 +61,9 @@ export default function TimelineTrack({
     selectedSnapshotIndex,
     setSelectedSnapshotIndex,
     setSelectedTickIndex,
-    setTickContextMenuPosition,
-    setShowTickContextMenu,
+    setContextTarget,
+    setContextMenuPosition,
+    setShowContextMenu,
     networkRef,
     nodesRef,
   ]);
