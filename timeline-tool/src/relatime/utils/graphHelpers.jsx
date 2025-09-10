@@ -9,12 +9,6 @@ export function handleAddConnection({
     connectionLevel,
     editingEdgeId,
     setEditingEdgeId,
-    setConnectionSource,
-    setConnectionTarget,
-    setConnectionLabel,
-    setConnectionDirection,
-    setApplyMode,
-    setShowAddConnection,
     setGraphData,
     networkRef,
     timelineEntries,
@@ -22,7 +16,8 @@ export function handleAddConnection({
     applyMode,
     selectedSnapshotIndex,
     partialStartIndex,
-    partialEndIndex
+    partialEndIndex,
+    clearPopup
 }) {
     const allNodeDetails = Object.entries(nodeDetails);
 
@@ -79,12 +74,7 @@ export function handleAddConnection({
         nodeDetails
     });
 
-    setConnectionSource('');
-    setConnectionTarget('');
-    setConnectionLabel('');
-    setConnectionDirection('normal');
-    setApplyMode('none');
-    setShowAddConnection(false);
+    clearPopup();
 };
 
 export function handleDeleteEdge(networkRef, edgeId, setGraphData, setShowEdgePopup, setSelectedEdgeId) {

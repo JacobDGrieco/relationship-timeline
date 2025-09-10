@@ -8,8 +8,6 @@ export default function AddNodePopup({
   nodeDetails,
   setGraphData,
   setNodeDetails,
-  setConnectionLabel,
-  setConnectionDirection,
   setShowAddPerson,
   timelineEntries,
   selectedSnapshotIndex,
@@ -36,6 +34,13 @@ export default function AddNodePopup({
     .map((entry, idx) => ({ idx, entry }))
     .filter(({ idx }) => idx >= selectedSnapshotIndex)
     .sort((a, b) => a.idx - b.idx); // ascending by distance
+
+  const clearPopup = () => {
+    setPersonName('');
+    setNodeType(typeOptions[0] || "Default");
+    setApplyMode('none');
+    setShowAddPerson(false);
+  }
 
   return (
     <div className="popup-overlay">
@@ -90,17 +95,12 @@ export default function AddNodePopup({
           </>
         )}
         <div className="actions">
-          <button className="cancel" onClick={() => setShowAddPerson(false)}>Cancel</button>
+          <button className="cancel" onClick={() => clearPopup()}>Cancel</button>
           <button className="confirm" onClick={() => handleAddPerson({
             personName,
             nodesRef,
             setGraphData,
             setNodeDetails,
-            setPersonName,
-            setConnectionLabel,
-            setConnectionDirection,
-            setApplyMode,
-            setShowAddPerson,
             timelineEntries,
             setTimelineEntries,
             applyMode,
@@ -110,7 +110,8 @@ export default function AddNodePopup({
             networkRef,
             nodeDetails,
             projectSettings,
-            nodeType: (nodeType || typeOptions[0] || "Default")
+            nodeType: (nodeType || typeOptions[0] || "Default"),
+            clearPopup
           })}>Add</button>
         </div>
       </div>

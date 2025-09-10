@@ -6,11 +6,6 @@ export function handleAddPerson({
   nodesRef,
   setGraphData,
   setNodeDetails,
-  setPersonName,
-  setConnectionLabel,
-  setConnectionDirection,
-  setApplyMode,
-  setShowAddPerson,
   timelineEntries,
   setTimelineEntries,
   applyMode,
@@ -76,11 +71,7 @@ export function handleAddPerson({
     nodeDetails
   });
 
-  setPersonName('');
-  setConnectionLabel('');
-  setConnectionDirection('normal');
-  setApplyMode('none');
-  setShowAddPerson(false);
+  clearPopup();
 }
 
 // Remove a node and all its connected edges from graph + vis dataset

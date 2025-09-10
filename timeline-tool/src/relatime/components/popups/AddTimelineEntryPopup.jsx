@@ -1,4 +1,4 @@
-import { createSnapshot, getNowDateTime } from "../../utils/timelineHelpers";
+import { createSnapshot, getNowDateTime, handleAddTick } from "../../utils/timelineHelpers";
 
 export default function AddTimelineEntryPopup({
     entryText,
@@ -20,6 +20,16 @@ export default function AddTimelineEntryPopup({
     timelineEntries,
     setSelectedSnapshotIndex
 }) {
+    const clearPopup = () => {
+        const { date, time } = getNowDateTime();
+        setEntryText("");
+        setEntryType("event");
+        setEntryDate(date);
+        setEntryTime(time);
+        setEditingTickId?.(null);
+        setShowTimelinePopup(false);
+    }
+
     return (
         <div className="popup-overlay">
             <div className="popup">
@@ -65,42 +75,23 @@ export default function AddTimelineEntryPopup({
                     onChange={(e) => setEntryTime(e.target.value)}
                 />
                 <div className="actions">
-                    <button className="cancel" onClick={() => setShowTimelinePopup(false)}>Cancel</button>
+                    <button className="cancel" onClick={() => clearPopup()}>Cancel</button>
                     <button className="confirm" onClick={() => {
-                        if (!entryText.trim() || !entryDate) return;
-                        const timestamp = new Date(`${entryDate}T${entryTime || "00:00"}`).toISOString();
-                        const isEditing = editingTickId != null && editingTickId >= 0 && editingTickId < timelineEntries.length;
-                        const baseSnapshot = isEditing ? timelineEntries[editingTickId].snapshot
-                            : createSnapshot(networkRef, graphData, nodeDetails);
-                        const updatedEntry = { type: entryType, name: entryText, timestamp, snapshot: baseSnapshot };
-
-                        let updated = [...timelineEntries];
-                        if (isEditing) {
-                            updated[editingTickId] = updatedEntry;  // replace in place
-                        } else {
-                            updated.push(updatedEntry);             // brand-new entry
-                        }
-                        // keep entries ordered by time
-                        updated.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-                        // where did our updated entry land?
-                        const newIndex = updated.findIndex(e => e === updatedEntry);
-
-                        setTimelineEntries(updated);
-                        if (!isEditing) {
-                            // only store a new snapshot when creating
-                            setSnapshots(prev => [...prev, baseSnapshot]);
-                        }
-                        if (newIndex !== -1) setSelectedSnapshotIndex(newIndex);
-
-                        // reset form & close
-                        const { date, time } = getNowDateTime();
-                        setShowTimelinePopup(false);
-                        setEntryText("");
-                        setEntryType("event");
-                        setEntryDate(date);
-                        setEntryTime(time);
-                        setEditingTickId?.(null);
+                        handleAddTick({
+                            entryText,
+                            entryType,
+                            entryDate,
+                            entryTime,
+                            editingTickId,
+                            timelineEntries,
+                            setTimelineEntries,
+                            networkRef,
+                            graphData,
+                            nodeDetails,
+                            setSnapshots,
+                            setSelectedSnapshotIndex,
+                            clearPopup
+                        })
                     }}>{editingTickId != null ? "Edit Event" : "Add Event"}</button>
                 </div>
             </div>

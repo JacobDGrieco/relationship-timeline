@@ -82,6 +82,15 @@ export default function AddConnectionPopup({
         return (first + last).toUpperCase() || (name[0]?.toUpperCase() || "?");
     };
 
+    const clearPopup = () => {
+        setConnectionSource('');
+        setConnectionTarget('');
+        setConnectionLabel('');
+        setConnectionDirection('normal');
+        setApplyMode('none');
+        setShowAddConnection(false);
+    }
+
     // Build options for dropdowns
     const pastEvents = timelineEntries
         .map((entry, idx) => ({ idx, entry }))
@@ -277,7 +286,7 @@ export default function AddConnectionPopup({
                     )
                 }
                 <div className="actions">
-                    <button className="cancel" onClick={() => setShowAddConnection(false)}>Cancel</button>
+                    <button className="cancel" onClick={() => clearPopup()}>Cancel</button>
                     <button className="confirm" onClick={() => handleAddConnection({
                         nodeDetails,
                         connectionSource,
@@ -287,12 +296,6 @@ export default function AddConnectionPopup({
                         connectionLevel,
                         editingEdgeId,
                         setEditingEdgeId,
-                        setConnectionSource,
-                        setConnectionTarget,
-                        setConnectionLabel,
-                        setConnectionDirection,
-                        setApplyMode,
-                        setShowAddConnection,
                         setGraphData,
                         networkRef,
                         timelineEntries,
@@ -300,7 +303,8 @@ export default function AddConnectionPopup({
                         applyMode,
                         selectedSnapshotIndex,
                         partialStartIndex,
-                        partialEndIndex
+                        partialEndIndex,
+                        clearPopup
                     })}>Add</button>
                 </div>
             </div >
