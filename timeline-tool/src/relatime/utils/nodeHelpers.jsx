@@ -15,7 +15,8 @@ export function handleAddPerson({
   networkRef,
   nodeDetails,
   projectSettings,
-  nodeType
+  nodeType,
+  clearPopup
 }) {
   const id = generateUniqueID();
   const label = personName || `Node ${id}`;
