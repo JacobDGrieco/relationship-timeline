@@ -24,21 +24,12 @@ export default function AddNodePopup({
 }) {
   const typeOptions = (projectSettings?.nodeTypes?.length ? projectSettings.nodeTypes : ["Default"]);
 
-  // Build options for dropdowns
-  const pastEvents = timelineEntries
-    .map((entry, idx) => ({ idx, entry }))
-    .filter(({ idx }) => idx <= selectedSnapshotIndex)
-    .sort((a, b) => b.idx - a.idx); // descending by distance
-
-  const futureEvents = timelineEntries
-    .map((entry, idx) => ({ idx, entry }))
-    .filter(({ idx }) => idx >= selectedSnapshotIndex)
-    .sort((a, b) => a.idx - b.idx); // ascending by distance
-
   const clearPopup = () => {
     setPersonName('');
     setNodeType(typeOptions[0] || "Default");
     setApplyMode('none');
+    setPartialStartIndex("--");
+    setPartialEndIndex("--");
     setShowAddPerson(false);
   }
 
@@ -74,9 +65,9 @@ export default function AddNodePopup({
               onChange={(e) => setPartialStartIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
             >
               <option value="">--</option>
-              {pastEvents.map(({ idx, entry }) => (
+              {timelineEntries.map((entry, idx) => (
                 <option key={idx} value={idx}>
-                  {entry.text} — {new Date(entry.timestamp).toLocaleString()}
+                  {entry.name} — {new Date(entry.timestamp).toLocaleString()}
                 </option>
               ))}
             </select>
@@ -86,9 +77,9 @@ export default function AddNodePopup({
               onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
             >
               <option value="">--</option>
-              {futureEvents.map(({ idx, entry }) => (
+              {timelineEntries.map((entry, idx) => (
                 <option key={idx} value={idx}>
-                  {entry.text} — {new Date(entry.timestamp).toLocaleString()}
+                  {entry.name} — {new Date(entry.timestamp).toLocaleString()}
                 </option>
               ))}
             </select>

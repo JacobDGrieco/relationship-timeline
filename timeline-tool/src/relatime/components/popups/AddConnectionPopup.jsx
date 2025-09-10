@@ -88,19 +88,10 @@ export default function AddConnectionPopup({
         setConnectionLabel('');
         setConnectionDirection('normal');
         setApplyMode('none');
+        setPartialStartIndex("--");
+        setPartialEndIndex("--");
         setShowAddConnection(false);
     }
-
-    // Build options for dropdowns
-    const pastEvents = timelineEntries
-        .map((entry, idx) => ({ idx, entry }))
-        .filter(({ idx }) => idx < selectedSnapshotIndex)
-        .sort((a, b) => b.idx - a.idx); // descending by distance
-
-    const futureEvents = timelineEntries
-        .map((entry, idx) => ({ idx, entry }))
-        .filter(({ idx }) => idx > selectedSnapshotIndex)
-        .sort((a, b) => a.idx - b.idx); // ascending by distance
 
     return (
         <div className="popup-overlay">
@@ -264,9 +255,9 @@ export default function AddConnectionPopup({
                                 onChange={(e) => setPartialStartIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
                             >
                                 <option value="">--</option>
-                                {pastEvents.map(({ idx, entry }) => (
+                                {timelineEntries.map((entry, idx) => (
                                     <option key={idx} value={idx}>
-                                        onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
+                                        {entry.name} — {new Date(entry.timestamp).toLocaleString()}
                                     </option>
                                 ))}
                             </select>
@@ -276,9 +267,9 @@ export default function AddConnectionPopup({
                                 onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
                             >
                                 <option value="">--</option>
-                                {futureEvents.map(({ idx, entry }) => (
+                                {timelineEntries.map((entry, idx) => (
                                     <option key={idx} value={idx}>
-                                        onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
+                                        {entry.name} — {new Date(entry.timestamp).toLocaleString()}
                                     </option>
                                 ))}
                             </select>
