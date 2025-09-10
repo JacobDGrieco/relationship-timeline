@@ -11,7 +11,6 @@ project settings have more settings. add connection types. add node/connection c
 
 Fixes:
 constant graph area rerending
-nodes not getting add to current event on Apply to Snapshot - Fully Fowards
 nodes not saving their name for NodeDetailPanel and others
 nodes not saving changed data when going between events
 Apply to Snapshots - Partial range should be two column. dropdowns should also show all events
