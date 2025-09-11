@@ -77,14 +77,43 @@ export function handleDeleteNode(networkRef, nodeId, setGraphData) {
   }));
 }
 
-export function handleNodeFieldChange(nodeId, field, value, setNodeDetails) {
-  setNodeDetails((prev) => ({
-    ...prev,
-    [nodeId]: {
-      ...prev[nodeId],
-      [field]: value,
-    },
-  }));
+export function handleNodeFieldChange(
+  nodeId,
+  field,
+  value,
+  setNodeDetails,
+  { networkRef, timelineEntries, setTimelineEntries, selectedSnapshotIndex } = {}
+) {
+  setNodeDetails(prev => {
+    const next = {
+      ...prev,
+      [nodeId]: {
+        ...prev[nodeId],
+        [field]: value,
+      },
+    };
+
+    // Overwrite the CURRENT snapshot so switching events keeps these changes
+    if (
+      networkRef?.current &&
+      Array.isArray(timelineEntries) &&
+      typeof selectedSnapshotIndex === "number" &&
+      timelineEntries[selectedSnapshotIndex]
+    ) {
+      setTimelineEntries(prevTE => {
+        const copy = [...prevTE];
+        const fresh = createSnapshot(
+          networkRef,
+          { edges: networkRef.current.body.data.edges.get() },
+          next
+        );
+        copy[selectedSnapshotIndex] = { ...copy[selectedSnapshotIndex], snapshot: fresh };
+        return copy;
+      });
+    }
+
+    return next;
+  });
 }
 
 export function handleImageUpload(
@@ -105,7 +134,7 @@ export function handleImageUpload(
       const sx = (img.width - side) / 2;
       const sy = (img.height - side) / 2;
 
-      const CANVAS_SIZE = 256; // tweak if you want a different avatar resolution
+      const CANVAS_SIZE = 256;
       const canvas = document.createElement("canvas");
       canvas.width = CANVAS_SIZE;
       canvas.height = CANVAS_SIZE;
@@ -161,33 +190,53 @@ export function handleImageUpload(
   reader.readAsDataURL(file);
 }
 
-export function addValueToArrayField({ nodeId, fieldId, value, setNodeDetails }) {
+export function addValueToArrayField({ nodeId, fieldId, value, setNodeDetails,
+  networkRef, timelineEntries, setTimelineEntries, selectedSnapshotIndex }) {
   const v = (value ?? '').trim();
   if (!v) return;
   setNodeDetails(prev => {
     const current = prev[nodeId]?.[fieldId] || [];
     if (current.includes(v)) return prev;
-    return {
+
+    const next = {
       ...prev,
-      [nodeId]: {
-        ...prev[nodeId],
-        [fieldId]: [...current, v]
-      }
+      [nodeId]: { ...prev[nodeId], [fieldId]: [...current, v] }
     };
+
+    if (networkRef?.current && Array.isArray(timelineEntries) &&
+      typeof selectedSnapshotIndex === "number" && timelineEntries[selectedSnapshotIndex]) {
+      setTimelineEntries(prevTE => {
+        const copy = [...prevTE];
+        const fresh = createSnapshot(networkRef,
+          { edges: networkRef.current.body.data.edges.get() }, next);
+        copy[selectedSnapshotIndex] = { ...copy[selectedSnapshotIndex], snapshot: fresh };
+        return copy;
+      });
+    }
+    return next;
   });
 }
 
-// Remove a value from an array-typed node field.
-export function removeValueFromArrayField({ nodeId, fieldId, value, setNodeDetails }) {
+export function removeValueFromArrayField({ nodeId, fieldId, value, setNodeDetails,
+  networkRef, timelineEntries, setTimelineEntries, selectedSnapshotIndex }) {
   setNodeDetails(prev => {
     const current = prev[nodeId]?.[fieldId] || [];
-    return {
+    const next = {
       ...prev,
-      [nodeId]: {
-        ...prev[nodeId],
-        [fieldId]: current.filter(x => x !== value)
-      }
+      [nodeId]: { ...prev[nodeId], [fieldId]: current.filter(x => x !== value) }
     };
+
+    if (networkRef?.current && Array.isArray(timelineEntries) &&
+      typeof selectedSnapshotIndex === "number" && timelineEntries[selectedSnapshotIndex]) {
+      setTimelineEntries(prevTE => {
+        const copy = [...prevTE];
+        const fresh = createSnapshot(networkRef,
+          { edges: networkRef.current.body.data.edges.get() }, next);
+        copy[selectedSnapshotIndex] = { ...copy[selectedSnapshotIndex], snapshot: fresh };
+        return copy;
+      });
+    }
+    return next;
   });
 }
 

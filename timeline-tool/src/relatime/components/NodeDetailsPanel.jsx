@@ -203,7 +203,12 @@ export default function NodeDetailsPanel({
                                             <textarea
                                                 className="details-input"
                                                 value={fieldValue}
-                                                onChange={(e) => handleNodeFieldChange(selectedNode, field.id, e.target.value, setNodeDetails)}
+                                                onChange={(e) =>
+                                                    handleNodeFieldChange(
+                                                        selectedNode, field.id, e.target.value, setNodeDetails,
+                                                        { networkRef, timelineEntries, setTimelineEntries, selectedSnapshotIndex }
+                                                    )
+                                                }
                                             />
                                         </div>
                                     );
@@ -214,7 +219,12 @@ export default function NodeDetailsPanel({
                                             <select
                                                 className="details-input"
                                                 value={fieldValue || ''}
-                                                onChange={(e) => handleNodeFieldChange(selectedNode, field.id, e.target.value, setNodeDetails)}
+                                                onChange={(e) =>
+                                                    handleNodeFieldChange(
+                                                        selectedNode, field.id, e.target.value, setNodeDetails,
+                                                        { networkRef, timelineEntries, setTimelineEntries, selectedSnapshotIndex }
+                                                    )
+                                                }
                                             >
                                                 <option key="" value=""></option>
                                                 {field.options.map((opt) => (
@@ -250,7 +260,10 @@ export default function NodeDetailsPanel({
                                                                 key={opt}
                                                                 className="dropdown-item"
                                                                 onMouseDown={() => {
-                                                                    addValueToArrayField({ nodeId: selectedNode, fieldId: field.id, value: opt, setNodeDetails });
+                                                                    addValueToArrayField({
+                                                                        nodeId: selectedNode, fieldId: field.id, value: opt, setNodeDetails,
+                                                                        networkRef, timelineEntries, setTimelineEntries, selectedSnapshotIndex
+                                                                    })
                                                                     setFieldFilter(field.id, '');
                                                                     inputRefs.current[field.id]?.current && (inputRefs.current[field.id].current.value = '');
                                                                     setShowDropdown(prev => ({ ...prev, [field.id]: false }));
@@ -266,7 +279,10 @@ export default function NodeDetailsPanel({
                                                         <span
                                                             key={val}
                                                             className="tag cursor-pointer"
-                                                            onClick={() => removeValueFromArrayField({ nodeId: selectedNode, fieldId: field.id, value: val, setNodeDetails })}
+                                                            onClick={() => removeValueFromArrayField({
+                                                                nodeId: selectedNode, fieldId: field.id, value: val, setNodeDetails,
+                                                                networkRef, timelineEntries, setTimelineEntries, selectedSnapshotIndex
+                                                            })}
                                                         >
                                                             {val}
                                                         </span>
