@@ -44,12 +44,15 @@ export function getStopTime(dateString) {
 }
 
 export function createSnapshot(networkRef, graphData, nodeDetails) {
+  const safeEdges = Array.isArray(graphData?.edges) ? graphData.edges : [];
+  const safeDetails = nodeDetails && typeof nodeDetails === 'object' ? nodeDetails : {};
+
   return {
     graphData: {
       nodes: networkRef.current.body.data.nodes.get(),
-      edges: JSON.parse(JSON.stringify(graphData.edges)),
+      edges: JSON.parse(JSON.stringify(safeEdges)),
     },
-    nodeDetails: JSON.parse(JSON.stringify(nodeDetails)),
+    nodeDetails: JSON.parse(JSON.stringify(safeDetails)),
   };
 }
 

@@ -189,10 +189,12 @@ export default function Home() {
                 nodeDetails={nodeDetails}
                 setNodeDetails={setNodeDetails}
                 networkRef={networkRef}
-                nodesRef={nodesRef}
                 isDetailsVisible={isDetailsVisible}
                 setIsDetailsVisible={setIsDetailsVisible}
                 setJustClosedRecently={setJustClosedRecently}
+                timelineEntries={timelineEntries}
+                setTimelineEntries={setTimelineEntries}
+                selectedSnapshotIndex={selectedSnapshotIndex}
               />
             ) : null}
           </div>

@@ -17,11 +17,13 @@ export default function NodeDetailsPanel({
     nodeDetails,
     setNodeDetails,
     networkRef,
-    nodesRef,
     isDetailsVisible,
     setIsDetailsVisible,
     setJustClosedRecently,
-    setSelectedNode
+    setSelectedNode,
+    timelineEntries,
+    setTimelineEntries,
+    selectedSnapshotIndex
 }) {
     const { projectSettings, setProjectSettings } = useProject();
     const [isClosing, setIsClosing] = useState(false);
@@ -174,7 +176,12 @@ export default function NodeDetailsPanel({
                                     onChange={(e) => {
                                         const file = e.target.files?.[0];
                                         if (!file) return;
-                                        handleImageUpload(nodesRef, selectedNode, file, setNodeDetails, setGraphData);
+                                        handleImageUpload(selectedNode, file, setNodeDetails, setGraphData, {
+                                            networkRef,
+                                            timelineEntries,
+                                            setTimelineEntries,
+                                            selectedSnapshotIndex,
+                                        });
                                     }}
                                 />
                             </label>

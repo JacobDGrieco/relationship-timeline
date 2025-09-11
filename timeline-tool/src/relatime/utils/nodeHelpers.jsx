@@ -1,5 +1,5 @@
 import { generateUniqueID } from "./graphHelpers";
-import { handleUpdateSnapshots } from "./timelineHelpers";
+import { handleUpdateSnapshots, createSnapshot } from "./timelineHelpers";
 
 export function handleAddPerson({
   personName,
@@ -62,8 +62,6 @@ export function handleDeleteNode(networkRef, nodeId, setGraphData) {
   if (!networkRef?.current || !nodeId) return;
 
   const net = networkRef.current;
-
-  // Find connected edges first (vis-network API)
   const connectedEdgeIds = net.getConnectedEdges(nodeId) || [];
 
   // Remove from vis DataSets
@@ -79,7 +77,6 @@ export function handleDeleteNode(networkRef, nodeId, setGraphData) {
   }));
 }
 
-
 export function handleNodeFieldChange(nodeId, field, value, setNodeDetails) {
   setNodeDetails((prev) => ({
     ...prev,
@@ -91,34 +88,52 @@ export function handleNodeFieldChange(nodeId, field, value, setNodeDetails) {
 }
 
 export function handleImageUpload(
-  nodesRef,
   selectedNode,
   file,
   setNodeDetails,
-  setGraphData
+  setGraphData,
+  { networkRef, timelineEntries, setTimelineEntries, selectedSnapshotIndex } = {}
 ) {
   if (!file || !selectedNode) return;
-
   const reader = new FileReader();
   reader.onload = function (e) {
     const imageData = e.target.result;
 
-    setNodeDetails(prev => ({
-      ...prev,
-      [selectedNode]: {
-        ...prev[selectedNode],
-        image: imageData,
-      }
-    }));
+    setNodeDetails(prev => {
+      const next = {
+        ...prev,
+        [selectedNode]: {
+          ...prev[selectedNode],
+          image: imageData,
+        },
+      };
 
-    // Update the graphData to reflect the image change
+      // Overwrite the CURRENT snapshot using the SAME updated details
+      if (
+        networkRef?.current &&
+        Array.isArray(timelineEntries) &&
+        typeof selectedSnapshotIndex === "number" &&
+        timelineEntries[selectedSnapshotIndex]
+      ) {
+        setTimelineEntries(prevTE => {
+          const copy = [...prevTE];
+          const fresh = createSnapshot(
+            networkRef,
+            { edges: networkRef.current.body.data.edges.get() },
+            next // ← pass the updated map
+          );
+          copy[selectedSnapshotIndex] = { ...copy[selectedSnapshotIndex], snapshot: fresh };
+          return copy;
+        });
+      }
+
+      return next;
+    });
+
     setGraphData(prev => {
-      const updatedNodes = prev.nodes.map(node => {
-        if (node.id === selectedNode) {
-          return { ...node, shape: "circularImage", image: imageData };
-        }
-        return node;
-      });
+      const updatedNodes = prev.nodes.map(node =>
+        node.id === selectedNode ? { ...node, shape: "circularImage", image: imageData } : node
+      );
       return { ...prev, nodes: updatedNodes };
     });
   };
