@@ -202,8 +202,8 @@ export default function NodeDetailsPanel({
                                             <label className="details-label">{field.label}</label>
                                             <textarea
                                                 className="details-input"
-                                                value={fieldValue}
-                                                onChange={(e) =>
+                                                defaultValue={fieldValue}
+                                                onBlur={(e) =>
                                                     handleNodeFieldChange(
                                                         selectedNode, field.id, e.target.value, setNodeDetails,
                                                         { networkRef, timelineEntries, setTimelineEntries, selectedSnapshotIndex }
