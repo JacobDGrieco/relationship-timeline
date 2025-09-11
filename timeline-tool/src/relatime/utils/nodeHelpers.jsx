@@ -20,56 +20,38 @@ export function handleAddPerson({
 }) {
   const id = generateUniqueID();
   const label = personName || `Node ${id}`;
-
   const newNode = { id, label, type: nodeType || "Default" };
-  nodesRef.current.add(newNode);
 
+  nodesRef.current.add(newNode);
   setGraphData(prev => ({
     nodes: [...prev.nodes, newNode],
     edges: [...prev.edges]
   }));
 
-  const baseDetails = {
-    name: personName,
-    type: nodeType || "Default"
-  };
-
+  const baseDetails = { name: personName, type: nodeType || "Default" };
   if (projectSettings?.length) {
     for (const field of projectSettings) {
       if (!(field?.id in baseDetails)) {
-        switch (field.type) {
-          case 'description':
-          case 'dropdown':
-            baseDetails[field.id] = '';
-            break;
-          case 'static-multiselect':
-          case 'dynamic-multiselect':
-            baseDetails[field.id] = [];
-            break;
-          case 'image-upload':
-            baseDetails[field.id] = null;
-            break;
-          default:
-            baseDetails[field.id] = '';
-        }
+        baseDetails[f.id] =
+          f.type === 'image-upload' ? null :
+            (f.type === 'static-multiselect' || f.type === 'dynamic-multiselect') ? [] : '';
       }
     }
   }
 
-  setNodeDetails(prev => ({
-    ...prev,
-    [id]: baseDetails,
-  }));
-
-  handleUpdateSnapshots(newNode, 'node', {
-    applyMode,
-    selectedSnapshotIndex,
-    partialStartIndex,
-    partialEndIndex,
-    timelineEntries,
-    setTimelineEntries,
-    networkRef,
-    nodeDetails
+  setNodeDetails(prev => {
+    const next = { ...prev, [id]: baseDetails };
+    handleUpdateSnapshots(newNode, 'node', {
+      applyMode,
+      selectedSnapshotIndex,
+      partialStartIndex,
+      partialEndIndex,
+      timelineEntries,
+      setTimelineEntries,
+      networkRef,
+      nodeDetails: next,
+    });
+    return next;
   });
 
   clearPopup();

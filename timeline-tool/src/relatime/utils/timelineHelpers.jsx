@@ -111,51 +111,60 @@ export function handleUpdateSnapshots(item, type, {
   const updated = [...timelineEntries];
   const applyToIndex = (idx) => {
     const snap = updated[idx].snapshot;
+
+    // Guards
+    if (!snap.graphData) snap.graphData = { nodes: [], edges: [] };
+    if (!snap.nodeDetails) snap.nodeDetails = {};
+
     if (type === 'node') {
-      // avoid duplicates if needed
-      if (!snap.graphData.nodes.some(n => n.id === item.id)) {
-        snap.graphData.nodes = [...snap.graphData.nodes, { ...item }];
-      }
+      const exists = snap.graphData.nodes.some(n => n.id === item.id);
+      snap.graphData.nodes = exists
+        ? snap.graphData.nodes.map(n => n.id === item.id ? { ...n, ...item } : n)
+        : [...snap.graphData.nodes, { ...item }];
+
+      const detailFromCaller = nodeDetails?.[item.id];
+      const mergedDetail = detailFromCaller || { name: item.label, type: item.type || "Default" };
+      snap.nodeDetails[item.id] = { ...(snap.nodeDetails[item.id] || {}), ...mergedDetail };
     } else if (type === 'edge') {
-      if (!snap.graphData.edges.some(e => e.id === item.id)) {
-        snap.graphData.edges = [...snap.graphData.edges, { ...item }];
-      }
+      const exists = snap.graphData.edges.some(e => e.id === item.id);
+      snap.graphData.edges = exists
+        ? snap.graphData.edges.map(e => e.id === item.id ? { ...e, ...item } : e)
+        : [...snap.graphData.edges, { ...item }];
     }
   };
 
-  if (applyMode === 'none') {
-    if (selectedSnapshotIndex !== null && timelineEntries[selectedSnapshotIndex]) {
-      const safeNodeDetails = nodeDetails ? JSON.parse(JSON.stringify(nodeDetails)) : {};
-
-      const updated = [...timelineEntries];
-      updated[selectedSnapshotIndex].snapshot = {
-        graphData: {
-          nodes: networkRef.current.body.data.nodes.get(),
-          edges: networkRef.current.body.data.edges.get(),
-        },
-        nodeDetails: safeNodeDetails
-      };
-      setTimelineEntries(updated);
-    }
-    return;
-  } else if (applyMode === 'full') {
-    updated.forEach((_, idx) => applyToIndex(idx));
-  } else if (applyMode === 'forward') {
-    for (let i = selectedSnapshotIndex; i < updated.length; i++) {
-      applyToIndex(i);
-    }
-  } else if (applyMode === 'backward') {
-    for (let i = selectedSnapshotIndex; i >= 0; i--) {
-      applyToIndex(i);
-    }
-  } else if (applyMode === 'partial') {
-    if (partialStartIndex != null && partialEndIndex != null) {
-      const start = Math.min(partialStartIndex, partialEndIndex);
-      const end = Math.max(partialStartIndex, partialEndIndex);
-      for (let i = start; i <= end; i++) {
-        applyToIndex(i);
+  switch (applyMode) {
+    case 'none': {
+      if (selectedSnapshotIndex != null && updated[selectedSnapshotIndex]) {
+        // Overwrite the current snapshot from live vis + current nodeDetails
+        const fresh = createSnapshot(networkRef, { edges: networkRef.current.body.data.edges.get() }, nodeDetails);
+        updated[selectedSnapshotIndex] = { ...updated[selectedSnapshotIndex], snapshot: fresh };
       }
+      break;
     }
+    case 'full':
+      updated.forEach((_, i) => applyToIndex(i));
+      break;
+    case 'forward':
+      if (selectedSnapshotIndex != null) {
+        for (let i = selectedSnapshotIndex; i < updated.length; i++) applyToIndex(i);
+      }
+      break;
+    case 'backward':
+      if (selectedSnapshotIndex != null) {
+        for (let i = selectedSnapshotIndex; i >= 0; i--) applyToIndex(i);
+      }
+      break;
+    case 'partial': {
+      if (partialStartIndex != null && partialEndIndex != null) {
+        const start = Math.min(partialStartIndex, partialEndIndex);
+        const end = Math.max(partialStartIndex, partialEndIndex);
+        for (let i = start; i <= end; i++) applyToIndex(i);
+      }
+      break;
+    }
+    default:
+      break;
   }
 
   setTimelineEntries(updated);
