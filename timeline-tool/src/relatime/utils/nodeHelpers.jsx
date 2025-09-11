@@ -95,47 +95,67 @@ export function handleImageUpload(
   { networkRef, timelineEntries, setTimelineEntries, selectedSnapshotIndex } = {}
 ) {
   if (!file || !selectedNode) return;
+
   const reader = new FileReader();
   reader.onload = function (e) {
-    const imageData = e.target.result;
+    const img = new Image();
+    img.onload = function () {
+      // 1) Center-crop to a square, then scale to a fixed canvas (uniform output)
+      const side = Math.min(img.width, img.height);
+      const sx = (img.width - side) / 2;
+      const sy = (img.height - side) / 2;
 
-    setNodeDetails(prev => {
-      const next = {
-        ...prev,
-        [selectedNode]: {
-          ...prev[selectedNode],
-          image: imageData,
-        },
-      };
+      const CANVAS_SIZE = 256; // tweak if you want a different avatar resolution
+      const canvas = document.createElement("canvas");
+      canvas.width = CANVAS_SIZE;
+      canvas.height = CANVAS_SIZE;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+      ctx.drawImage(img, sx, sy, side, side, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-      // Overwrite the CURRENT snapshot using the SAME updated details
-      if (
-        networkRef?.current &&
-        Array.isArray(timelineEntries) &&
-        typeof selectedSnapshotIndex === "number" &&
-        timelineEntries[selectedSnapshotIndex]
-      ) {
-        setTimelineEntries(prevTE => {
-          const copy = [...prevTE];
-          const fresh = createSnapshot(
-            networkRef,
-            { edges: networkRef.current.body.data.edges.get() },
-            next // ← pass the updated map
-          );
-          copy[selectedSnapshotIndex] = { ...copy[selectedSnapshotIndex], snapshot: fresh };
-          return copy;
-        });
-      }
+      const normalized = canvas.toDataURL("image/png");
 
-      return next;
-    });
+      // 2) Update details from the freshest state and snapshot with the same object
+      setNodeDetails(prev => {
+        const next = {
+          ...prev,
+          [selectedNode]: {
+            ...prev[selectedNode],
+            image: normalized,
+          },
+        };
 
-    setGraphData(prev => {
-      const updatedNodes = prev.nodes.map(node =>
-        node.id === selectedNode ? { ...node, shape: "circularImage", image: imageData } : node
-      );
-      return { ...prev, nodes: updatedNodes };
-    });
+        // Overwrite the CURRENT snapshot so switching events keeps the image
+        if (
+          networkRef?.current &&
+          Array.isArray(timelineEntries) &&
+          typeof selectedSnapshotIndex === "number" &&
+          timelineEntries[selectedSnapshotIndex]
+        ) {
+          setTimelineEntries(prevTE => {
+            const copy = [...prevTE];
+            const fresh = createSnapshot(
+              networkRef,
+              { edges: networkRef.current.body.data.edges.get() },
+              next
+            );
+            copy[selectedSnapshotIndex] = { ...copy[selectedSnapshotIndex], snapshot: fresh };
+            return copy;
+          });
+        }
+
+        return next;
+      });
+
+      // 3) Update the vis node immediately
+      setGraphData(prev => {
+        const updatedNodes = prev.nodes.map(node =>
+          node.id === selectedNode ? { ...node, shape: "circularImage", image: normalized } : node
+        );
+        return { ...prev, nodes: updatedNodes };
+      });
+    };
+    img.src = e.target.result;
   };
 
   reader.readAsDataURL(file);

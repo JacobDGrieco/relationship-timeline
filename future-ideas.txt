@@ -5,12 +5,11 @@ Gmail connection
 Change password
 
 Addition:
-stat table for nodes and connections (distances, # of connections, etc)
-add a copy function to copy+paste nodes across events
 project settings have more settings. add connection types. add node/connection custom css. add project changelog
+add a copy function to copy+paste nodes across events
+stat table for nodes and connections (distances, # of connections, etc)
 
 Fixes:
-constant graph area rerending
-nodes not saving their name for NodeDetailPanel and others
 nodes not saving changed data when going between events
 context menu going through the bottom of the screen instead of readjusting above cursor
+constant graph area rerending
