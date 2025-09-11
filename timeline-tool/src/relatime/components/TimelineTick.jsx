@@ -17,7 +17,9 @@ export default function TimelineTick({
     setContextMenuPosition,
     setShowContextMenu,
     networkRef,
-    nodesRef
+    nodesRef,
+    setIsDetailsVisible,
+    setJustClosedRecently
 }) {
     const entryTime = new Date(entry.timestamp).getTime();
     const leftPx = getLeftOffset(entry.timestamp, startTime, stopTime, fullWidth);
@@ -26,6 +28,10 @@ export default function TimelineTick({
     const inView = entryTime >= startTime && entryTime <= stopTime;
 
     const handleClick = () => {
+        // Close NodeDetailsPanel
+        setIsDetailsVisible(false);
+        setJustClosedRecently(false);
+
         // When a tick is clicked, update state to make this tick the selected one.
         setSelectedSnapshotIndex(idx);
 

@@ -20,6 +20,8 @@ export default function TimelineTrack({
   nodesRef,
   lastActiveTickRef,
   timelineTrackRef,
+  setIsDetailsVisible,
+  setJustClosedRecently,
 }) {
   const startTime = getStartTime(timelineStartDate);
   const stopTime = getStopTime(timelineEndDate);
@@ -48,6 +50,8 @@ export default function TimelineTrack({
         setShowContextMenu={setShowContextMenu}
         networkRef={networkRef}
         nodesRef={nodesRef}
+        setIsDetailsVisible={setIsDetailsVisible}
+        setJustClosedRecently={setJustClosedRecently}
       />
     ));
   }, [

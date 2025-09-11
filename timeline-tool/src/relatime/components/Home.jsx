@@ -237,9 +237,8 @@ export default function Home() {
                 nodesRef={nodesRef}
                 lastActiveTickRef={lastActiveTickRef}
                 timelineTrackRef={timelineTrackRef}
-                showTimelinePopup={showTimelinePopup}
-                showAddPerson={showAddPerson}
-                showAddConnection={showAddConnection}
+                setIsDetailsVisible={setIsDetailsVisible}
+                setJustClosedRecently={setJustClosedRecently}
               />
             </div>
           </div>
