@@ -59,30 +59,36 @@ export default function AddNodePopup({
         </select>
         {applyMode === 'partial' && (
           <>
-            <label>Earliest Event</label>
-            <select
-              value={partialStartIndex ?? ""}
-              onChange={(e) => setPartialStartIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
-            >
-              <option value="">--</option>
-              {timelineEntries.map((entry, idx) => (
-                <option key={idx} value={idx}>
-                  {entry.name} — {new Date(entry.timestamp).toLocaleString()}
-                </option>
-              ))}
-            </select>
-            <label>Latest Event</label>
-            <select
-              value={partialEndIndex ?? ""}
-              onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
-            >
-              <option value="">--</option>
-              {timelineEntries.map((entry, idx) => (
-                <option key={idx} value={idx}>
-                  {entry.name} — {new Date(entry.timestamp).toLocaleString()}
-                </option>
-              ))}
-            </select>
+            <div className="two-col">
+              <div className="field">
+                <label>Earliest Event</label>
+                <select
+                  value={partialStartIndex ?? ""}
+                  onChange={(e) => setPartialStartIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
+                >
+                  <option value="">--</option>
+                  {timelineEntries.map((entry, idx) => (
+                    <option key={idx} value={idx}>
+                      {entry.name} — {new Date(entry.timestamp).toLocaleString()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label>Latest Event</label>
+                <select
+                  value={partialEndIndex ?? ""}
+                  onChange={(e) => setPartialEndIndex(e.target.value ? parseInt(e.target.value, 10) : null)}
+                >
+                  <option value="">--</option>
+                  {timelineEntries.map((entry, idx) => (
+                    <option key={idx} value={idx}>
+                      {entry.name} — {new Date(entry.timestamp).toLocaleString()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </>
         )}
         <div className="actions">

@@ -13,5 +13,4 @@ Fixes:
 constant graph area rerending
 nodes not saving their name for NodeDetailPanel and others
 nodes not saving changed data when going between events
-Apply to Snapshots - Partial range should be two column. dropdowns should also show all events
 context menu going through the bottom of the screen instead of readjusting above cursor
