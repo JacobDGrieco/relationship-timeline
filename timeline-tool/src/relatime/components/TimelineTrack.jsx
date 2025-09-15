@@ -28,6 +28,7 @@ export default function TimelineTrack({
   const fullWidth = timelineTrackRef.current?.offsetWidth || 1000;
 
   const stackMap = {};
+
   const timelineTicks = useMemo(() => {
     return timelineEntries.map((entry, idx) => (
       <TimelineTick

@@ -48,6 +48,9 @@ export default function TimelineTick({
     };
 
     const handleRightClick = (e) => {
+        if (e.clientY > 675) {
+            e.clientY -= 75;
+        }
         e.preventDefault();
         setSelectedTickIndex(idx);
         setContextTarget({ type: 'tick', id: idx });

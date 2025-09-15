@@ -11,6 +11,4 @@ add a copy function to copy+paste nodes across events
 stat table for nodes and connections (distances, # of connections, etc)
 
 Fixes:
-change node field type - description to only get saved when the text area is unfocused instead of onchange
-context menu going through the bottom of the screen instead of readjusting above cursor
 constant graph area rerending
