@@ -3,6 +3,7 @@ import SidePanel from './SidePanel.jsx';
 import ProjectName from './ProjectName.jsx';
 import NodeFieldTypes from './NodeFieldTypes.jsx';
 import NodeConnectionTypesPopup from './NodeConnectionTypesPopup.jsx';
+import NodeConnectionCSSPopup from './NodeConnectionCSSPopup.jsx';
 import '../../styles/master-style.css';
 
 const fieldTypes = [
@@ -17,9 +18,9 @@ const PANEL = {
   NAME: 'project-name',
   FIELDS: 'node-fields',
   TYPES: 'types',
-  NODE_CSS: 'node-css',
-  CONNECTION_CSS: 'connection-css',
+  CSS: 'css',
   CHANGELOG: 'changelog',
+  STATS: 'stats'
 };
 
 export default function ProjectSettings({
@@ -143,12 +144,10 @@ export default function ProjectSettings({
             )}
 
             {activePanel === PANEL.CSS && (
-              <div style={{ display: 'grid', gap: '1rem' }}>
-                <p style={{ opacity: 0.8, marginTop: 0 }}>Planned: add custom CSS per type (e.g., colors, borders, badges). You’ll preview changes live.</p>
-                <div className="actions">
-                  <button className="cancel" onClick={closeSidePanel}>Back</button>
-                </div>
-              </div>
+              <NodeConnectionCSSPopup
+                networkRef={networkRef}
+                onClose={closeSidePanel}
+              />
             )}
 
             {activePanel === PANEL.CHANGELOG && (
@@ -179,7 +178,7 @@ function panelTitle(key) {
   if (key === PANEL.NAME) return 'Project Name';
   if (key === PANEL.FIELDS) return 'Node Field Types';
   if (key === PANEL.TYPES) return 'Node/Connection Types';
-  if (key === PANEL.CSS) return 'Custom Node/Connection CSS';
+  if (key === PANEL.CSS) return 'Node/Connection CSS';
   if (key === PANEL.CHANGELOG) return 'Project Changelog';
   if (key === PANEL.STATS) return 'Stats';
   return 'Settings';
