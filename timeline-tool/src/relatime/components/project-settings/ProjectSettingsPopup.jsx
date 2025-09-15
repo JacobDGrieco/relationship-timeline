@@ -48,10 +48,10 @@ export default function ProjectSettings({
   const cards = useMemo(() => ([
     { key: PANEL.NAME, title: 'Project Name', subtitle: 'Rename your project' },
     { key: PANEL.TYPES, title: 'Node/Connection Types', subtitle: 'Define types (soon)' },
-    { key: PANEL.NODE_CSS, title: 'Custom Node CSS', subtitle: 'Per-type styles (soon)' },
+    { key: PANEL.CSS, title: 'Custom Node/Connection CSS', subtitle: 'Per-type styles (soon)' },
     { key: PANEL.CHANGELOG, title: 'Project Changelog', subtitle: 'Log & view changes (soon)' },
     { key: PANEL.FIELDS, title: 'Node Field Types', subtitle: 'Manage custom fields' },
-    { key: PANEL.CONNECTION_CSS, title: 'Custom Connection CSS', subtitle: 'Per-type styles (soon)' }
+    { key: PANEL.STATS, title: "Stats", subtitle: 'Get different stats about the project (no K/D)' }
   ]), []);
 
   const closeSidePanel = () => {
@@ -159,6 +159,15 @@ export default function ProjectSettings({
                 </div>
               </div>
             )}
+
+            {activePanel === PANEL.STATS && (
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                <p style={{ opacity: 0.8, marginTop: 0 }}>Planned: calculate different statistics such as "popularity", distances, etc.</p>
+                <div className="actions">
+                  <button className="cancel" onClick={closeSidePanel}>Back</button>
+                </div>
+              </div>
+            )}
           </SidePanel>
         )}
       </div >
@@ -167,11 +176,11 @@ export default function ProjectSettings({
 }
 
 function panelTitle(key) {
-  if (key === 'project-name') return 'Project Name';
-  if (key === 'node-fields') return 'Node Field Types';
-  if (key === 'types') return 'Node/Connection Types';
-  if (key === 'node-css') return 'Custom Node CSS';
-  if (key === 'connection-css') return 'Custom Connection CSS';
-  if (key === 'changelog') return 'Project Changelog';
+  if (key === PANEL.NAME) return 'Project Name';
+  if (key === PANEL.FIELDS) return 'Node Field Types';
+  if (key === PANEL.TYPES) return 'Node/Connection Types';
+  if (key === PANEL.CSS) return 'Custom Node/Connection CSS';
+  if (key === PANEL.CHANGELOG) return 'Project Changelog';
+  if (key === PANEL.STATS) return 'Stats';
   return 'Settings';
 }

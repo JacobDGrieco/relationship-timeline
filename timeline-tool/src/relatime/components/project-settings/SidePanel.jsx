@@ -1,8 +1,7 @@
 // ./SidePanel.jsx
-import React from "react";
 import "../../styles/master-style.css";
 
-export default function SidePanel({ title, className = "", onClose, children, width = '50%' }) {
+export default function SidePanel({ title, className = "", children, width = '50%' }) {
   return (
     <div
       className={`popup popup-side ${className}`}
