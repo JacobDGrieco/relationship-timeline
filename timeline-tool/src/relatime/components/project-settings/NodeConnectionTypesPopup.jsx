@@ -2,23 +2,21 @@
 import React, { useEffect, useState } from "react";
 
 export default function NodeConnectionTypesPopup({
+    projectSettings,
+    setProjectSettings,
     networkRef,
     nodeDetails,
     setNodeDetails,
-    nodeTypes,
-    setNodeTypes,
-    connectionTypes,
-    setConnectionTypes,
     onNodeTypesDeleted,
     onClose,
 }) {
-    const [nodes, setNodes] = useState(() => sanitize(nodeTypes));
-    const [conns, setConns] = useState(() => sanitize(connectionTypes));
+    const [nodes, setNodes] = useState(() => sanitize(projectSettings?.nodeTypes));
+    const [conns, setConns] = useState(() => sanitize(projectSettings?.connectionTypes));
     const [draftNode, setDraftNode] = useState("");
     const [draftConn, setDraftConn] = useState("");
 
-    useEffect(() => setNodes(sanitize(nodeTypes)), [nodeTypes]);
-    useEffect(() => setConns(sanitize(connectionTypes)), [connectionTypes]);
+    useEffect(() => setNodes(sanitize(projectSettings?.nodeTypes)), [projectSettings?.nodeTypes]);
+    useEffect(() => setConns(sanitize(projectSettings?.connectionTypes)), [projectSettings?.connectionTypes]);
 
     const addNodeType = () => {
         const v = (draftNode || "").trim();
@@ -37,7 +35,7 @@ export default function NodeConnectionTypesPopup({
     const removeConnType = (v) => setConns(prev => prev.filter(x => x !== v));
 
     const handleSave = () => {
-        const beforeNT = Array.isArray(nodeTypes) ? nodeTypes : [];
+        const beforeNT = Array.isArray(projectSettings?.nodeTypes) ? projectSettings.nodeTypes : [];
         const nt = sortAlpha(dedupe(nodes));
         const ct = sortAlpha(dedupe(conns));
 
@@ -48,8 +46,7 @@ export default function NodeConnectionTypesPopup({
             onNodeTypesDeleted(deleted, replacement, setNodeDetails, nodeDetails, networkRef);
         }
 
-        setNodeTypes(nt);
-        setConnectionTypes(ct);
+        setProjectSettings(prev => ({ ...prev, nodeTypes: nt, connectionTypes: ct }));
         onClose();
     };
 

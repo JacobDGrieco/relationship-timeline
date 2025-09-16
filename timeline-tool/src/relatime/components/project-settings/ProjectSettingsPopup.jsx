@@ -3,29 +3,22 @@ import SidePanel from './SidePanel.jsx';
 import ProjectName from './ProjectName.jsx';
 import NodeFieldTypes from './NodeFieldTypes.jsx';
 import NodeConnectionTypesPopup from './NodeConnectionTypesPopup.jsx';
-import NodeConnectionCSSPopup from './NodeConnectionCSSPopup.jsx';
+import NodeConnectionCSSPopup from './NodeConnectionStylesPopup.jsx';
 import '../../styles/master-style.css';
-
-const fieldTypes = [
-  'description',
-  'dropdown',
-  'static-multiselect',
-  'dynamic-multiselect'
-];
 
 const PANEL = {
   MENU: 'menu',
   NAME: 'project-name',
   FIELDS: 'node-fields',
   TYPES: 'types',
-  CSS: 'css',
+  STYLES: 'styles',
   CHANGELOG: 'changelog',
   STATS: 'stats'
 };
 
 export default function ProjectSettings({
-  settings,
-  setSettings,
+  projectSettings,
+  setProjectSettings,
   networkRef,
   nodeDetails,
   setNodeDetails,
@@ -49,7 +42,7 @@ export default function ProjectSettings({
   const cards = useMemo(() => ([
     { key: PANEL.NAME, title: 'Project Name', subtitle: 'Rename your project' },
     { key: PANEL.TYPES, title: 'Node/Connection Types', subtitle: 'Define types (soon)' },
-    { key: PANEL.CSS, title: 'Custom Node/Connection CSS', subtitle: 'Per-type styles (soon)' },
+    { key: PANEL.STYLES, title: 'Custom Styles', subtitle: 'Per-type styles (soon)' },
     { key: PANEL.CHANGELOG, title: 'Project Changelog', subtitle: 'Log & view changes (soon)' },
     { key: PANEL.FIELDS, title: 'Node Field Types', subtitle: 'Manage custom fields' },
     { key: PANEL.STATS, title: "Stats", subtitle: 'Get different stats about the project (no K/D)' }
@@ -120,8 +113,8 @@ export default function ProjectSettings({
 
             {activePanel === PANEL.FIELDS && (
               <NodeFieldTypes
-                settings={settings}
-                setSettings={setSettings}
+                fields={projectSettings.nodeFields || []}
+                setFields={(next) => setProjectSettings(prev => ({ ...prev, nodeFields: next }))}
                 onClose={closeSidePanel}
                 overlayNode={overlayRef.current}
                 setNestedOpen={setNestedOpen}
@@ -131,21 +124,23 @@ export default function ProjectSettings({
 
             {activePanel === PANEL.TYPES && (
               <NodeConnectionTypesPopup
+                projectSettings={projectSettings}
+                setProjectSettings={setProjectSettings}
                 networkRef={networkRef}
                 nodeDetails={nodeDetails}
                 setNodeDetails={setNodeDetails}
-                nodeTypes={Array.isArray(nodeTypes) ? nodeTypes : []}
-                setNodeTypes={setNodeTypes}
-                connectionTypes={Array.isArray(connectionTypes) ? connectionTypes : []}
-                setConnectionTypes={setConnectionTypes}
                 onNodeTypesDeleted={onNodeTypesDeleted}
                 onClose={closeSidePanel}
               />
             )}
 
-            {activePanel === PANEL.CSS && (
+            {activePanel === PANEL.STYLES && (
               <NodeConnectionCSSPopup
-                networkRef={networkRef}
+                projectSettings={projectSettings}
+                setProjectSettings={setProjectSettings}
+                availableFieldNames={Array.isArray(projectSettings.nodeFields)
+                  ? projectSettings.nodeFields.map(f => f.label || f.id).filter(Boolean)
+                  : []}
                 onClose={closeSidePanel}
               />
             )}
@@ -178,7 +173,7 @@ function panelTitle(key) {
   if (key === PANEL.NAME) return 'Project Name';
   if (key === PANEL.FIELDS) return 'Node Field Types';
   if (key === PANEL.TYPES) return 'Node/Connection Types';
-  if (key === PANEL.CSS) return 'Node/Connection CSS';
+  if (key === PANEL.STYLES) return 'Custom Styles';
   if (key === PANEL.CHANGELOG) return 'Project Changelog';
   if (key === PANEL.STATS) return 'Stats';
   return 'Settings';

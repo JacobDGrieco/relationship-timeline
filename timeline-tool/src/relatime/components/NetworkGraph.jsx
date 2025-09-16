@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
+import { computeNodeVisFromSettings } from "../utils/nodeHelpers";
 
 export default function NetworkGraph({
     graphData,
     nodeDetails,
+    projectSettings,
     containerRef,
     networkRef,
     nodesRef,
@@ -19,11 +21,9 @@ export default function NetworkGraph({
 }) {
     useEffect(() => {
         const processedNodes = graphData.nodes.map((node) => {
-            const detail = nodeDetails?.[node.id];
-            if (detail?.image) {
-                return { ...node, shape: "circularImage", image: detail.image };
-            }
-            return { ...node, shape: "dot" };
+            const detail = nodeDetails?.[node.id] || {};
+            const styled = computeNodeVisFromSettings({ node, details: detail, projectSettings });
+            return { ...node, ...styled };
         });
 
         const nodes = new DataSet(processedNodes);
@@ -67,12 +67,6 @@ export default function NetworkGraph({
             nodes: {
                 shape: "dot",
                 size: 30,
-                color: {
-                    highlight: {
-                        border: "yellow",
-                        background: "#fff6a3"
-                    },
-                },
                 font: { size: 10, color: isDarkMode ? "#fff" : "#333" },
                 borderWidth: 2,
                 borderWidthSelected: 3
@@ -177,5 +171,5 @@ export default function NetworkGraph({
                 setContextTarget(null);
             });
         }
-    }, [graphData, nodeDetails, isDarkMode]);
+    }, [graphData, nodeDetails, projectSettings, isDarkMode]);
 }

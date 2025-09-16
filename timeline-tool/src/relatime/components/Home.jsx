@@ -74,7 +74,7 @@ export default function Home() {
   const [applyMode, setApplyMode] = useState('none');
   const [partialStartIndex, setPartialStartIndex] = useState(null);
   const [partialEndIndex, setPartialEndIndex] = useState(null);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showProjectSettings, setShowProjectSettings] = useState(false);
 
   const containerRef = useRef();
   const networkRef = useRef();
@@ -94,6 +94,10 @@ export default function Home() {
         ...p,
         nodeTypes: Array.isArray(p.nodeTypes) ? p.nodeTypes : [],
         connectionTypes: Array.isArray(p.connectionTypes) ? p.connectionTypes : [],
+        nodeStyles: p.nodeStyles ?? {
+          defaultStyle: { color: "#888888", shape: "dot", size: 30, imageOpacity: 1 },
+          rules: []  // empty to start; user adds via the CSS popup
+        }
       };
     });
   }, []);
@@ -133,6 +137,7 @@ export default function Home() {
       <NetworkGraph
         graphData={graphData}
         nodeDetails={nodeDetails}
+        projectSettings={projectSettings}
         containerRef={containerRef}
         networkRef={networkRef}
         nodesRef={nodesRef}
@@ -147,7 +152,7 @@ export default function Home() {
       />
       <div className="header">
         <div className="header-left">
-          <button onClick={() => setShowSettings(true)}>Project Settings</button>
+          <button onClick={() => setShowProjectSettings(true)}>Project Settings</button>
           <button onClick={async () => {
             const token = localStorage.getItem('token');
             await saveProject(
@@ -158,7 +163,7 @@ export default function Home() {
                 timelineStartDate,
                 timelineEndDate,
                 snapshots,
-                customFields: customFields,
+                customFields: projectSettings?.nodeFields ?? [],
                 projectName: projectName || 'Untitled Project'
               },
               token,
@@ -244,27 +249,17 @@ export default function Home() {
           </div>
         </div>
       </div>
-      {showSettings && (
+      {showProjectSettings && (
         <ProjectSettings
-          settings={projectSettings.nodeFields}
-          setSettings={(newFields) =>
-            setProjectSettings(prev => ({ ...prev, nodeFields: newFields }))
-          }
+          projectSettings={projectSettings}
+          setProjectSettings={setProjectSettings}
           networkRef={networkRef}
           nodeDetails={nodeDetails}
           setNodeDetails={setNodeDetails}
-          nodeTypes={projectSettings.nodeTypes || []}
-          setNodeTypes={(nt) =>
-            setProjectSettings(prev => ({ ...prev, nodeTypes: nt }))
-          }
-          connectionTypes={projectSettings.connectionTypes || []}
-          setConnectionTypes={(ct) =>
-            setProjectSettings(prev => ({ ...prev, connectionTypes: ct }))
-          }
           onNodeTypesDeleted={pruneDeletedNodeTypes}
           projectName={projectName}
           setProjectName={setProjectName}
-          onClose={() => setShowSettings(false)}
+          onClose={() => setShowProjectSettings(false)}
           onOptionsDeleted={pruneDeletedOptionsFromNodes}
         />
       )}

@@ -12,20 +12,18 @@ const fieldTypes = [
 ];
 
 export default function NodeFieldTypes({
-  settings,
-  setSettings,
+  fields: incomingFields,
+  setFields: setNodeFields,
   onClose,
   overlayNode,
   setNestedOpen,
-  onOptionsDeleted, // <-- NEW
+  onOptionsDeleted,
 }) {
-  const [fields, setFields] = useState(settings || []);
+  const [fields, setFields] = useState(incomingFields || []);
   const [editingField, setEditingField] = useState(null); // {id,label,type,options}
   const [closingOptions, setClosingOptions] = useState(false);
 
-  useEffect(() => {
-    setFields(settings || []);
-  }, [settings]);
+  useEffect(() => { setFields(incomingFields || []); }, [incomingFields]);
 
   const addField = () => {
     const newField = {
@@ -62,7 +60,7 @@ export default function NodeFieldTypes({
   };
 
   const handleSave = () => {
-    setSettings(fields);
+    setNodeFields(fields);
     onClose();
   };
 

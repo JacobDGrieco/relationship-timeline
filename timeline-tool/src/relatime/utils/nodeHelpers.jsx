@@ -1,6 +1,8 @@
 import { generateUniqueID } from "./graphHelpers";
 import { handleUpdateSnapshots, createSnapshot } from "./timelineHelpers";
 
+const _imgAlphaCache = new Map();
+
 export function handleAddPerson({
   personName,
   nodesRef,
@@ -29,9 +31,9 @@ export function handleAddPerson({
   }));
 
   const baseDetails = { name: personName, type: nodeType || "Default" };
-  if (projectSettings?.length) {
-    for (const field of projectSettings) {
-      if (!(field?.id in baseDetails)) {
+  if (Array.isArray(projectSettings) && projectSettings.length) {
+    for (const f of projectSettings) {
+      if (!(f?.id in baseDetails)) {
         baseDetails[f.id] =
           f.type === 'image-upload' ? null :
             (f.type === 'static-multiselect' || f.type === 'dynamic-multiselect') ? [] : '';
@@ -240,8 +242,6 @@ export function removeValueFromArrayField({ nodeId, fieldId, value, setNodeDetai
   });
 }
 
-// --- Suggestions ---
-
 // For dynamic-multiselect: suggest from field.options (minus already-selected), filtered.
 export function getSuggestions(field, selectedValues = [], filterText = '') {
   const f = (filterText || '').toLowerCase();
@@ -249,8 +249,6 @@ export function getSuggestions(field, selectedValues = [], filterText = '') {
   return (field.options || [])
     .filter(opt => opt.toLowerCase().includes(f) && !selected.has(opt));
 }
-
-// --- Keyboard helper ---
 
 // On Enter in a dynamic input, add the value and fire optional afterAdd callback.
 export function handleEnterAddToArrayField(e, { nodeId, fieldId, setNodeDetails, afterAdd }) {
@@ -339,4 +337,102 @@ export function pruneDeletedOptionsFromNodes(fieldId, deletedValues, setNodeDeta
     }
     return changed ? next : prev;
   });
+}
+
+export function computeNodeVisFromSettings({ node, details, projectSettings }) {
+  const nc = projectSettings?.nodeStyles || {};
+  const base = {
+    shape: nc?.defaultStyle?.shape ?? "dot",
+    size: nc?.defaultStyle?.size ?? 30,
+    color: nc?.defaultStyle?.color ?? "#888",
+    imageOpacity: Number.isFinite(nc?.defaultStyle?.imageOpacity) ? nc.defaultStyle.imageOpacity : 1
+  };
+
+  const rules = Array.isArray(nc?.rules) ? nc.rules : [];
+  let style = { ...base };
+
+  for (const r of rules) {
+    if (ruleMatches(r?.match, details)) {
+      style = { ...style, ...r.style };
+    }
+  }
+
+  // Build vis-network node props
+  const out = {
+    shape: style.shape || "dot",
+    size: style.size || 30,
+    color: { background: style.color || "#888", border: style.color || "#888", highlight: { background: style.color || "#fff6a3", border: "yellow" } },
+  };
+
+  // Images: use circularImage if an image exists or if explicitly requested;
+  // apply opacity if specified (<1).
+  const src = details?.image || null;
+  if (src && (out.shape === "circularImage" || style.shape === "circularImage")) {
+    out.shape = "circularImage";
+    const alpha = clamp01(style.imageOpacity ?? 1);
+    out.image = (alpha >= 0.999) ? src : getImageWithOpacity(src, alpha);
+  } else if (!src && out.shape === "circularImage") {
+    // fall back if no image present
+    out.shape = "dot";
+  }
+
+  return out;
+}
+
+function ruleMatches(match, details) {
+  if (!match) return false;
+  if (match.mode === "type") {
+    const t = details?.type || "Default";
+    return (t === match.type);
+  }
+  if (match.mode === "field") {
+    const name = match.fieldName;
+    // fieldName can be label or id; try both
+    const val = details?.[name] ?? details?.[idFromLabel(name)];
+    const s = valToString(val);
+    if (match.op === "equals") return s === String(match.value ?? "");
+    if (match.op === "contains") return s.toLowerCase().includes(String(match.value ?? "").toLowerCase());
+    if (match.op === "in") {
+      const arr = Array.isArray(match.value) ? match.value : [];
+      return arr.some(v => s === String(v));
+    }
+  }
+  return false;
+}
+
+function idFromLabel(labelish) { return labelish; } // adjust if your fields use separate ids vs labels
+
+function valToString(v) {
+  if (Array.isArray(v)) return v.join(", ");
+  if (v == null) return "";
+  return String(v);
+}
+
+function clamp01(n) { return Math.max(0, Math.min(1, Number.isFinite(n) ? n : 1)); }
+
+function getImageWithOpacity(src, opacity) {
+  const key = `${src}|${opacity}`;
+  const cached = _imgAlphaCache.get(key);
+  if (cached) return cached;
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const img = new Image();
+  // Important for dataURL: no crossOrigin needed; for remote images you would need proper CORS.
+  img.src = src;
+
+  // NOTE: synchronous return won't work; we must return a cached or precomputed result.
+  // For simplicity in this code path, we assume "src" is from FileReader/dataURL (your app already uses that).
+  // Render immediately (image likely already decoded in memory), but still guard on dimensions:
+  // If width/height are 0 (not decoded yet), just return src and a later render cycle will cache it.
+  if (!img.width || !img.height) return src;
+
+  canvas.width = img.width;
+  canvas.height = img.height;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.globalAlpha = opacity;
+  ctx.drawImage(img, 0, 0);
+  const out = canvas.toDataURL("image/png");
+  _imgAlphaCache.set(key, out);
+  return out;
 }
