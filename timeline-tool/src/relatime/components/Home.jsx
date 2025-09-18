@@ -7,7 +7,7 @@ import { useProject } from "../context/ProjectContext.jsx";
 
 // Component Imports
 import ThemeToggleSlider from "../utils/themeHelper.jsx";
-import NetworkGraph from "./NetworkGraph.jsx";
+import CytoGraph from "./CytoGraph.jsx";
 import TimelineTrack from "./TimelineTrack.jsx";
 import NodeDetailsPanel from "./NodeDetailsPanel.jsx";
 
@@ -57,10 +57,7 @@ export default function Home() {
 	const [nodeType, setNodeType] = useState("");
 	const [dropdownFilter, setDropdownFilter] = useState("");
 	const [roleDropdownFilter, setRoleDropdownFilter] = useState("");
-	const [showDropdown, setShowDropdown] = useState({
-		roles: false,
-		secondarySeries: false,
-	});
+	const [showDropdown, setShowDropdown] = useState();
 	const [isDetailsVisible, setIsDetailsVisible] = useState(false);
 	const [justClosedRecently, setJustClosedRecently] = useState(false);
 	const [isEditingName, setIsEditingName] = useState(false);
@@ -72,10 +69,7 @@ export default function Home() {
 	const [connectionLevel, setConnectionLevel] = useState(1);
 	const [selectedEdgeId, setSelectedEdgeId] = useState(null);
 	const [showContextMenu, setShowContextMenu] = useState(false);
-	const [contextMenuPosition, setContextMenuPosition] = useState({
-		x: 0,
-		y: 0,
-	});
+	const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
 	const [contextTarget, setContextTarget] = useState(null); // {type:'node'|'edge'|'tick', id}
 	const [editingEdgeId, setEditingEdgeId] = useState(null);
 	const [editingTickId, setEditingTickId] = useState(null);
@@ -91,7 +85,7 @@ export default function Home() {
 	const [showProjectSettings, setShowProjectSettings] = useState(false);
 
 	const containerRef = useRef();
-	const networkRef = useRef();
+	const cytoRef = useRef();
 	const nodesRef = useRef(null);
 	const timelineTrackRef = useRef(null);
 	const lastActiveTickRef = useRef(null);
@@ -122,8 +116,16 @@ export default function Home() {
 	}, []);
 
 	useEffect(() => {
-		if (selectedNode && networkRef.current) {
-			networkRef.current.selectNodes([selectedNode]);
+		if (!selectedNode || !cytoRef.current) return;
+		const cyto = cytoRef.current;
+		const ele = cyto.$id(String(selectedNode));
+		if (ele.nonempty()) {
+			cyto.batch(() => {
+				cyto.$(":selected").unselect();
+				ele.select();
+			});
+			// Prefer a light focus without jumpy fit. Adjust as you like.
+			cyto.animate({ center: { eles: ele } }, { duration: 200 });
 		}
 	}, [selectedNode]);
 
@@ -157,13 +159,14 @@ export default function Home() {
 
 	return (
 		<div className="app-container">
-			<NetworkGraph
+			<CytoGraph
 				graphData={graphData}
 				nodeDetails={nodeDetails}
 				projectSettings={projectSettings}
 				containerRef={containerRef}
-				networkRef={networkRef}
+				cytoRef={cytoRef}
 				nodesRef={nodesRef}
+				setGraphData={setGraphData}
 				setGraphMounted={setGraphMounted}
 				setSelectedNode={setSelectedNode}
 				setShowContextMenu={setShowContextMenu}
@@ -215,15 +218,16 @@ export default function Home() {
 			</div>
 			<div className="main-content">
 				<div className="top-section">
-					<div className="network-area">
-						<div id="network-container" ref={containerRef}></div>
+					<div className="cyto-area">
+						<div id="cyto-container" ref={containerRef}></div>
 						{isDetailsVisible || justClosedRecently ? (
 							<NodeDetailsPanel
 								setGraphData={setGraphData}
 								selectedNode={selectedNode}
 								nodeDetails={nodeDetails}
 								setNodeDetails={setNodeDetails}
-								networkRef={networkRef}
+								cytoRef={cytoRef}
+								setSelectedNode={setSelectedNode}
 								isDetailsVisible={isDetailsVisible}
 								setIsDetailsVisible={setIsDetailsVisible}
 								setJustClosedRecently={setJustClosedRecently}
@@ -275,6 +279,9 @@ export default function Home() {
 								setSelectedSnapshotIndex={setSelectedSnapshotIndex}
 								setGraphData={setGraphData}
 								setNodeDetails={setNodeDetails}
+								setTimelineEntries={setTimelineEntries}
+								graphData={graphData}
+								nodeDetails={nodeDetails}
 								selectedTickIndex={selectedTickIndex}
 								setSelectedTickIndex={setSelectedTickIndex}
 								contextMenuPosition={contextMenuPosition}
@@ -282,7 +289,7 @@ export default function Home() {
 								setContextMenuPosition={setContextMenuPosition}
 								setShowContextMenu={setShowContextMenu}
 								setHoveredTick={setHoveredTick}
-								networkRef={networkRef}
+								cytoRef={cytoRef}
 								nodesRef={nodesRef}
 								lastActiveTickRef={lastActiveTickRef}
 								timelineTrackRef={timelineTrackRef}
@@ -297,7 +304,7 @@ export default function Home() {
 				<ProjectSettings
 					projectSettings={projectSettings}
 					setProjectSettings={setProjectSettings}
-					networkRef={networkRef}
+					cytoRef={cytoRef}
 					nodeDetails={nodeDetails}
 					setNodeDetails={setNodeDetails}
 					onNodeTypesDeleted={pruneDeletedNodeTypes}
@@ -311,7 +318,7 @@ export default function Home() {
 				<AddNodePopup
 					personName={personName}
 					setPersonName={setPersonName}
-					networkRef={networkRef}
+					cytoRef={cytoRef}
 					nodesRef={nodesRef}
 					setGraphData={setGraphData}
 					setNodeDetails={setNodeDetails}
@@ -334,6 +341,8 @@ export default function Home() {
 			)}
 			{showAddConnection && (
 				<AddConnectionPopup
+					cytoRef={cytoRef}
+					nodesRef={nodesRef}
 					nodeDetails={nodeDetails}
 					connectionSource={connectionSource}
 					setConnectionSource={setConnectionSource}
@@ -349,8 +358,6 @@ export default function Home() {
 					editingEdgeId={editingEdgeId}
 					setEditingEdgeId={setEditingEdgeId}
 					setGraphData={setGraphData}
-					networkRef={networkRef}
-					nodesRef={nodesRef}
 					timelineEntries={timelineEntries}
 					selectedSnapshotIndex={selectedSnapshotIndex}
 					setTimelineEntries={setTimelineEntries}
@@ -364,6 +371,8 @@ export default function Home() {
 			)}
 			{showTimelinePopup && (
 				<AddTimelineEntryPopup
+					cytoRef={cytoRef}
+					graphData={graphData}
 					entryText={entryText}
 					setEntryText={setEntryText}
 					entryType={entryType}
@@ -372,8 +381,6 @@ export default function Home() {
 					setEntryDate={setEntryDate}
 					entryTime={entryTime}
 					setEntryTime={setEntryTime}
-					networkRef={networkRef}
-					graphData={graphData}
 					nodeDetails={nodeDetails}
 					setTimelineEntries={setTimelineEntries}
 					setSnapshots={setSnapshots}
@@ -387,18 +394,19 @@ export default function Home() {
 			{showContextMenu && contextTarget.type == "node" && (
 				<NodeContextMenu
 					position={contextMenuPosition}
-					networkRef={networkRef}
+					cytoRef={cytoRef}
 					setShowContextMenu={setShowContextMenu}
 					nodeId={contextTarget.id}
 					setSelectedNode={setSelectedNode}
 					setIsDetailsVisible={setIsDetailsVisible}
 					setGraphData={setGraphData}
+					setNodeDetails={setNodeDetails}
 				/>
 			)}
 			{showContextMenu && contextTarget.type == "edge" && (
 				<EdgeContextMenu
 					position={contextMenuPosition}
-					networkRef={networkRef}
+					cytoRef={cytoRef}
 					setShowContextMenu={setShowContextMenu}
 					edgeId={contextTarget.id}
 					nodeDetails={nodeDetails}

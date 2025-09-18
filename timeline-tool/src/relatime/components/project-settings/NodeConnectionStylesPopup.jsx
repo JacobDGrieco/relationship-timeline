@@ -107,14 +107,12 @@ export default function NodeConnectionCSSPopup({
 							>
 								<option>dot</option>
 								<option>triangle</option>
-								<option>triangleDown</option>
+								{/* <option>triangleDown</option> */}
 								<option>square</option>
 								<option>diamond</option>
 								<option>hexagon</option>
 								<option>star</option>
 								<option>ellipse</option>
-								<option>box</option>
-								<option>database</option>
 							</select>
 						</label>
 						<label

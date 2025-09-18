@@ -29,7 +29,7 @@
   width: 180px;
   padding: 10px;
   background-color: var(--popup-bg, #3f536f);
-  color: var(--popup-text, #000);
+  color: var(--popup-text, #fff);
   border-radius: 10px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   overflow: hidden;

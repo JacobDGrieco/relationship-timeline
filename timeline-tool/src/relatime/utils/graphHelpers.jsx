@@ -1,118 +1,95 @@
-import { handleUpdateSnapshots } from "./timelineHelpers";
+import { handleUpdateSnapshots } from "./timelineHelpers.jsx";
 
 export function handleAddConnection({
-    nodeDetails,
-    connectionSource,
-    connectionTarget,
-    connectionLabel,
-    connectionDirection,
-    connectionLevel,
-    editingEdgeId,
-    setEditingEdgeId,
-    setGraphData,
-    networkRef,
-    timelineEntries,
-    setTimelineEntries,
-    applyMode,
-    selectedSnapshotIndex,
-    partialStartIndex,
-    partialEndIndex,
-    clearPopup
+	cytoRef,
+	nodeDetails,
+	connectionSource,
+	connectionTarget,
+	connectionLabel,
+	connectionDirection,
+	connectionLevel,
+	editingEdgeId,
+	setEditingEdgeId,
+	setGraphData,
+	timelineEntries,
+	setTimelineEntries,
+	applyMode,
+	selectedSnapshotIndex,
+	partialStartIndex,
+	partialEndIndex,
+	clearPopup,
 }) {
-    const allNodeDetails = Object.entries(nodeDetails);
+	const allNodeDetails = Object.entries(nodeDetails);
 
-    const sourceEntry = allNodeDetails.find(([, data]) => data.name === connectionSource);
-    const targetEntry = allNodeDetails.find(([, data]) => data.name === connectionTarget);
+	const sourceEntry = allNodeDetails.find(([, data]) => data.name === connectionSource);
+	const targetEntry = allNodeDetails.find(([, data]) => data.name === connectionTarget);
 
-    if (!sourceEntry || !targetEntry) {
-        alert('One or both node names not found.');
-        return;
-    }
+	if (!sourceEntry || !targetEntry) {
+		alert("One or both node names not found.");
+		return;
+	}
 
-    const fromId = sourceEntry[0];
-    const toId = targetEntry[0];
+	const fromId = sourceEntry[0];
+	const toId = targetEntry[0];
 
-    const updatedEdge = {
-        from: fromId,
-        to: toId,
-        label: connectionLabel,
-        arrows: getArrowDirection(connectionDirection),
-        level: connectionLevel
-    };
+	const updatedEdge = {
+		id: editingEdgeId || generateUniqueID("edge"),
+		from: fromId, // kept for backward compatibility with snapshots
+		to: toId, // kept for backward compatibility with snapshots
+		source: fromId, // Cytoscape expects source/target
+		target: toId,
+		label: connectionLabel || "",
+		direction: connectionDirection || "normal", // 'normal' | 'reverse' | 'both' | 'none'
+		level: connectionLevel ?? 1, // 0=weak,1=normal,2=strong
+	};
 
-    if (editingEdgeId) {
-        updatedEdge.id = editingEdgeId;
-        networkRef.current.body.data.edges.update(updatedEdge);
+	if (editingEdgeId) {
+		setGraphData((prev) => ({
+			...prev,
+			edges: prev.edges.map((e) => (e.id === editingEdgeId ? { ...e, ...updatedEdge } : e)),
+		}));
+		setEditingEdgeId(null);
+	} else {
+		setGraphData((prev) => ({ ...prev, edges: [...prev.edges, updatedEdge] }));
+	}
 
-        setGraphData(prev => ({
-            ...prev,
-            edges: prev.edges.map(edge =>
-                edge.id === editingEdgeId ? { ...updatedEdge } : edge
-            )
-        }));
-        setEditingEdgeId(null);
-    } else {
-        const id = generateUniqueID();
-        updatedEdge.id = id;
+	handleUpdateSnapshots(updatedEdge, "edge", {
+		applyMode,
+		selectedSnapshotIndex,
+		partialStartIndex,
+		partialEndIndex,
+		timelineEntries,
+		setTimelineEntries,
+		nodeDetails,
+	});
 
-        networkRef.current.body.data.edges.add(updatedEdge);
-
-        setGraphData(prev => ({
-            ...prev,
-            edges: [...prev.edges, updatedEdge]
-        }));
-    }
-
-    handleUpdateSnapshots(updatedEdge, 'edge', {
-        applyMode,
-        selectedSnapshotIndex,
-        partialStartIndex,
-        partialEndIndex,
-        timelineEntries,
-        setTimelineEntries,
-        networkRef,
-        nodeDetails
-    });
-
-    clearPopup();
-};
-
-export function handleDeleteEdge(networkRef, edgeId, setGraphData, setShowEdgePopup, setSelectedEdgeId) {
-    networkRef.current.body.data.edges.remove({ id: edgeId });
-
-    setGraphData(prev => ({
-        nodes: [...prev.nodes],
-        edges: prev.edges.filter(edge => edge.id !== edgeId)
-    }));
-
-    setShowEdgePopup(false);
-    setSelectedEdgeId(null);
+	clearPopup();
 }
 
-export function generateUniqueID() {
-    return 'node-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+export function handleDeleteEdge(_cytoRef, edgeId, setGraphData, setShowEdgePopup, setSelectedEdgeId) {
+	setGraphData((prev) => ({
+		nodes: [...prev.nodes],
+		edges: prev.edges.filter((edge) => edge.id !== edgeId),
+	}));
+
+	setShowEdgePopup(false);
+	setSelectedEdgeId(null);
 }
 
-export function getArrowDirection(direction) {
-    switch (direction) {
-        case 'normal':
-            return { to: { enabled: true } };
-        case 'reverse':
-            return { from: { enabled: true } };
-        case 'both':
-            return { to: { enabled: true }, from: { enabled: true } };
-        case 'none':
-        default:
-            return { to: { enabled: false }, from: { enabled: false } };
-    }
+export function generateUniqueID(prefix = "id") {
+	return `${prefix}-` + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-export function getArrowDirectionLabel(arrows) {
-    const from = arrows?.from?.enabled;
-    const to = arrows?.to?.enabled;
-
-    if (from && to) return 'both';
-    if (from) return 'reverse';
-    if (to) return 'normal';
-    return 'none';
+export function arrowShapesForDirection(direction = "normal") {
+	switch (direction) {
+		case "reverse":
+			return { sourceArrow: "triangle", targetArrow: "none" };
+		case "both":
+			return { sourceArrow: "triangle", targetArrow: "triangle" };
+		case "none":
+			return { sourceArrow: "none", targetArrow: "none" };
+		case "normal":
+		default:
+			return { sourceArrow: "none", targetArrow: "triangle" };
+	}
 }
